@@ -1,7 +1,10 @@
 ---
 layout: post
-title: "note one"
+title: "就这里了"
 date: 2014-11-08 17:01:30 +0800
 comments: true
 categories: 
 ---
+
+## Hello ,终于看到你了！
+  二〇一四年十一月〇八日，今天终于把博客搭起来了，真是太周折了！
