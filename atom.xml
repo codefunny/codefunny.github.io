@@ -4,7 +4,7 @@
   <title><![CDATA[My Octopress Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2014-11-08T18:06:46+08:00</updated>
+  <updated>2014-11-08T18:26:01+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Your Name]]></name>
@@ -18,7 +18,7 @@
     <link href="http://codefunny.github.io/blog/2014/11/08/note-one/"/>
     <updated>2014-11-08T17:01:30+08:00</updated>
     <id>http://codefunny.github.io/blog/2014/11/08/note-one</id>
-    <content type="html"><![CDATA[
+    <content type="html"><![CDATA[<h2>Hello ,终于看到你了！</h2>
 ]]></content>
   </entry>
   
