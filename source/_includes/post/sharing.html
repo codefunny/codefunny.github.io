@@ -1,5 +1,8 @@
 <div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	{% if site.weibo_share  %}	
+		{% include post/weibo.html  %}
+	{% endif %}
 	{% if site.facebook_like %}
 	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	{% endif %}

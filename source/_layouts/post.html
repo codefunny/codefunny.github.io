@@ -4,6 +4,7 @@ single: true
 ---
 
 <article class="post" itemscope itemtype="http://schema.org/BlogPosting">{% include article.html %}</article>
+	{% include post/license.html %}
 {% unless page.sharing == false %}
 	{% include post/sharing.html %}
 {% endunless %}
