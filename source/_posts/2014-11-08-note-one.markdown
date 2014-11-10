@@ -1,9 +1,9 @@
 ---
 layout: post
 title: "开辟鸿蒙"
-date: 2014-11-08 17:01:30 +0800
+date: 2014-11-08 17:01
 comments: true
-categories: 
+categories: 其它 
 ---
 
 *2014年11月08日，今天终于把博客搭起来了，真是太周折了！抄诗一首纪念*
