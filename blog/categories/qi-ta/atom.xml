@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 其它 | Peter's Blog]]></title>
+  <link href="http://codefunny.github.io/blog/categories/qi-ta/atom.xml" rel="self"/>
+  <link href="http://codefunny.github.io/"/>
+  <updated>2014-11-12T22:16:08+08:00</updated>
+  <id>http://codefunny.github.io/</id>
+  <author>
+    <name><![CDATA[Peter]]></name>
+    <email><![CDATA[winchaozheng@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[我的大学]]></title>
+    <link href="http://codefunny.github.io/blog/2014/11/10/nov/"/>
+    <updated>2014-11-10T14:08:32+08:00</updated>
+    <id>http://codefunny.github.io/blog/2014/11/10/nov</id>
+    <content type="html"><![CDATA[<p><img src="http://img-arch.pconline.com.cn/images/upload/upc/tx/photoblog/1007/14/c7/4520248_4520248_1279100005078_mthumb.jpg" alt="image" /></p>
+
+<!-- more  -->
+
+
+<blockquote><p><em>月亮在白莲花般的云朵里穿行，</em><br><br>
+<em>晚风吹来一阵阵快乐的歌声。</em><br><br>
+<em>我们坐在高高的谷堆旁边，</em><br><br>
+<em>听妈妈讲那过去的事情，</em><br><br>
+<em>我们坐在高高的谷堆旁边，</em><br><br>
+<em>听妈妈讲那过去的事情。</em><br></p></blockquote>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[开辟鸿蒙]]></title>
+    <link href="http://codefunny.github.io/blog/2014/11/08/note-one/"/>
+    <updated>2014-11-08T17:01:00+08:00</updated>
+    <id>http://codefunny.github.io/blog/2014/11/08/note-one</id>
+    <content type="html"><![CDATA[<p><em>2014年11月08日，今天终于把博客搭起来了，真是太周折了！抄诗一首纪念</em>
+<br><br></p>
+
+<blockquote><p>世人都晓神仙好，唯有功名忘不了；古今将相在何方，荒冢一堆草没了；<br>
+世人都晓神仙好，唯有金银忘不了；终朝只恨聚无多，及到多时眼闭了；<br>
+世人都晓神仙好，只有娇妻忘不了；君生日日念恩情，君死又随人去了；<br>
+世人都晓神仙好，只有儿孙忘不了，痴心父母古来多，孝顺儿孙谁见了。<br></p></blockquote>
+]]></content>
+  </entry>
+  
+</feed>
