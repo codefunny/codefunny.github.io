@@ -5,7 +5,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>test - Peter&#8217;s Blog</title>
+	<title>#github问题之“Empty reply from server” - Peter&#8217;s Blog</title>
 	<meta name="author" content="Peter">
 
 	
@@ -100,8 +100,44 @@
 			
 			<div class="mid-col-container">
 				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-	<h1 class="title" itemprop="name">Test</h1>
-	<div class="entry-content" itemprop="articleBody">
+	<h1 class="title" itemprop="name">#github问题之“Empty Reply From Server”</h1>
+	<div class="entry-content" itemprop="articleBody"><p>这两个星期，每次提交<code>sudo rake deploy</code>,就会遇到下面的问题</p>
+
+<pre><code>fatal: unable to access ‘https://github.com/xxxxx’: Empty reply from server.
+</code></pre>
+
+<p>在网上找了好久，每个解决的办法都不一样，又说是git2.0的问题，需要执行这样的命令<code>git config --global push.default matching</code>，可是还是同样的问题。最后有网友说是git被墙了，需要用vpn提交，看到这样的答案真是无语了，难道就没有办法了吗。</p>
+
+<!-- more  -->
+
+
+<p>终于功夫不负有心人，又有人提出采用ssh的方式取代https，那么怎么搬到呢，我们需要执行下面的命令，或者到.git/config中修改remote-url，</p>
+
+<pre><code>git remote set-url origin git@github.com:codefunny/codefunny.github.io.git
+</code></pre>
+
+<p>然后再提交<code>sudo rake deploy</code>,结果这次报下面的错误：</p>
+
+<pre><code>Permission denied (publickey).
+fatal: Could not read from remote repository.
+</code></pre>
+
+<p>根据说法就是sshkey正确了，大家就去<a href="https://help.github.com/articles/generating-ssh-keys/#step-3-add-your-ssh-key-to-your-account">https://help.github.com/articles/generating-ssh-keys/#step-3-add-your-ssh-key-to-your-account</a>进行设置，我之前设置过，但还是报错，于是使用<code>ssh -vT git@github.com</code>进行测试，结果我知道了，使用sudo和非sudo使用的sshkey是不一样的，一个在/var/root/目录里,一个是/Users/username/目录下，所以是我使用<code>sudo</code>的缘故，怎么解呢？</p>
+
+<p>那就更改<code>_deploy</code>所属权，将其由root改为username，下面的命令可以帮助到你<code>sudo chown -R username ./_deploy</code>，这样就就可以使用下面的命令再来提交一次<code>rake deploy</code>，正常的情况下会提交成功，在非正常的情况，可能还会出现下面的问题，</p>
+
+<pre><code>error: src refspec master does not match any.
+</code></pre>
+
+<p>此时可以尝试做出点修改，再执行一遍下面的命令中的某个或某几个</p>
+
+<pre><code>rake generate
+git add .
+git commit -am 'modifiy'
+rake deploy
+</code></pre>
+
+<p>通过上面的探索总算是解决了问题，现在发现在网上找到最正确地答案真是越来越难了，自己不得不一个一个的去校验答案的正确性。</p>
 </div>
 
 </article>
