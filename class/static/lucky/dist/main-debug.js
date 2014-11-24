@@ -181,8 +181,12 @@ define("examples/lucky/1.0.0/lucky-debug", [ "jquery-debug", "jquery-easing-debu
 
 define("examples/lucky/1.0.0/user-debug", [ "jquery-debug" ], function(require, exports, module) {
     var $ = require("jquery-debug");
-    var CANVAS_HEIGHT = 500;
-    var CANVAS_WIDTH = 900;
+    /*
+  var CANVAS_HEIGHT = 900;
+  var CANVAS_WIDTH = 900;
+  */
+    var CANVAS_HEIGHT = $(document).height();
+    var CANVAS_WIDTH = $(document).width();
     var BALL_WIDTH = 40;
     var BALL_HEIGHT = 40;
     var LUCKY_BALL_WIDTH = 120;

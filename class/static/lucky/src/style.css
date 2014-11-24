@@ -1,10 +1,12 @@
 body {
   font: 20px "Hiragino Sans GB", sans-serif;
-  background: #eee;
-  background: url(http://img-arch.pconline.com.cn/images/upload/upc/tx/photoblog/1007/14/c7/4520248_4520248_1279100005078_mthumb.jpg)  no-repeat 45% 25%;
-  background-size:contain; 
   width: auto;
   height: auto;
+  background: #eee;
+  /*
+  background: url(http://img-arch.pconline.com.cn/images/upload/upc/tx/photoblog/1007/14/c7/4520248_4520248_1279100005078_mthumb.jpg)  no-repeat 45% 25%;
+  background-size:contain; 
+  */
 }
 
 ul li {
@@ -12,20 +14,18 @@ ul li {
 }
 
 #container {
-  width: 900px;
+  width: auto;
   margin: 10px auto;
   position: relative;
-  /*
   background: url(https://a248.e.akamai.net/assets.github.com/images/spinners/octocat-spinner-32.gif) no-repeat 45% 25%;
-  */
-
+  
 }
 
 #balls {
   padding: 0;
   margin: 0;
   list-style: none;
-  height: 500px;
+  height: auto;
 }
 
 #balls li,
