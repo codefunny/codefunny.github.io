@@ -1,7 +1,41 @@
 ---
 layout: post
-title: "test"
+title: "github问题之“Empty reply from server”"
 date: 2014-11-24 15:33:56 +0800
 comments: true
-categories: 
+categories: github
 ---
+
+
+这两个星期，每次提交`sudo rake deploy`,就会遇到下面的问题
+
+	fatal: unable to access ‘https://github.com/xxxxx’: Empty reply from server.
+
+在网上找了好久，每个解决的办法都不一样，又说是git2.0的问题，需要执行这样的命令`git config --global push.default matching`，可是还是同样的问题。最后有网友说是git被墙了，需要用vpn提交，看到这样的答案真是无语了，难道就没有办法了吗。
+
+<!-- more  -->
+
+终于功夫不负有心人，又有人提出采用ssh的方式取代https，那么怎么搬到呢，我们需要执行下面的命令，或者到.git/config中修改remote-url，
+
+	git remote set-url origin git@github.com:codefunny/codefunny.github.io.git
+
+然后再提交`sudo rake deploy`,结果这次报下面的错误：
+
+	Permission denied (publickey).
+	fatal: Could not read from remote repository.
+
+根据说法就是sshkey正确了，大家就去<https://help.github.com/articles/generating-ssh-keys/#step-3-add-your-ssh-key-to-your-account>进行设置，我之前设置过，但还是报错，于是使用`ssh -vT git@github.com`进行测试，结果我知道了，使用sudo和非sudo使用的sshkey是不一样的，一个在/var/root/目录里,一个是/Users/username/目录下，所以是我使用`sudo`的缘故，怎么解呢？
+
+那就更改`_deploy`所属权，将其由root改为username，下面的命令可以帮助到你`sudo chown -R username ./_deploy`，这样就就可以使用下面的命令再来提交一次`rake deploy`，正常的情况下会提交成功，在非正常的情况，可能还会出现下面的问题，
+
+	error: src refspec master does not match any.
+
+此时可以尝试做出点修改，再执行一遍下面的命令中的某个或某几个
+
+	rake generate
+	git add .
+	git commit -am 'modifiy'
+	rake deploy
+
+通过上面的探索总算是解决了问题，现在发现在网上找到最正确地答案真是越来越难了，自己不得不一个一个的去校验答案的正确性。
+
