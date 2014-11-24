@@ -1,7 +1,8 @@
 /*! define examples/lucky/1.0.0/style-debug.css */
 body {
   font: 20px "Hiragino Sans GB", sans-serif;
-  background: #eee;
+  /*background: #eee;*/
+  background-image: http://img-arch.pconline.com.cn/images/upload/upc/tx/photoblog/1007/14/c7/4520248_4520248_1279100005078_mthumb.jpg;
 }
 
 ul li {
@@ -12,7 +13,9 @@ ul li {
   width: 900px;
   margin: 10px auto;
   position: relative;
+  /*
   background: url(https://a248.e.akamai.net/assets.github.com/images/spinners/octocat-spinner-32.gif) no-repeat 45% 25%;
+  */
 }
 
 #balls {
