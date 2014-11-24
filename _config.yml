@@ -106,3 +106,5 @@ post_license: true
 
 #weibo_share
 weibo_share: true
+
+email_md5: /images/custom_images/160-peter.jpg
