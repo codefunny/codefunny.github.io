@@ -6,14 +6,15 @@ comments: true
 categories: github
 ---
 
+![image](/images/custom_images/github-log.jpg)
+
+<!-- more -->
 
 这两个星期，每次提交`sudo rake deploy`,就会遇到下面的问题
 
 	fatal: unable to access ‘https://github.com/xxxxx’: Empty reply from server.
 
 在网上找了好久，每个解决的办法都不一样，又说是git2.0的问题，需要执行这样的命令`git config --global push.default matching`，可是还是同样的问题。最后有网友说是git被墙了，需要用vpn提交，看到这样的答案真是无语了，难道就没有办法了吗。
-
-<!-- more  -->
 
 终于功夫不负有心人，又有人提出采用ssh的方式取代https，那么怎么搬到呢，我们需要执行下面的命令，或者到.git/config中修改remote-url，
 
