@@ -1,0 +1,208 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Hybrid模式下支付宝钱包APP探秘 - Peter&#8217;s Blog</title>
+	<meta name="author" content="Peter">
+
+	
+	<meta name="description" content="博客、Peter">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Peter's Blog" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://codefunny.github.io/blog/2014/11/25/hybrid-alipay-app/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<!--link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'-->
+	<script src="http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js"></script>
+	<!-- baidu zhanzhang -->
+<meta name="baidu-site-verification" content="gZTC7LLPAu" />
+
+  
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<!-- img src="http://www.gravatar.com/avatar//images/custom_images/160-peter.jpg?s=160" alt="Profile Picture" style="width: 160px;" / -->
+	<img src="/images/custom_images/160-peter.jpg" alt="Profile Picture" style="width: 160px;" />
+	
+</div>
+<h1><a href="/">Peter</a></h1>
+<p class="subtitle">数风流人物<br>还看今朝</p>
+
+<nav id="main-nav"><ul class="main">
+    <li><a href="/">首页</a></li>
+    <li><a href="/blog/archives">所有文章</a></li>
+    <li><a href="/about">关于我</a></li>
+</ul>
+
+
+<section class="aboutme">
+  <p>
+    博客、Peter
+  </p>
+</section>
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+			<a class="email" href="mailto:winchaozheng@gmail.com" title="Email">Email</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<!-- add weixin  -->
+欢迎关注我的微信公众账号<br>
+<div align=center><img width="100" height="100" src="/images/qrcode_for_gh_weixin_430.jpg"></div>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">Hybrid模式下支付宝钱包APP探秘</h1>
+	<div class="entry-content" itemprop="articleBody"><p>探秘对象是iOS系统8.3.0版本支付宝钱包，拿到ipa文件之后，进行解压缩处理，从中我们可以看到这几类文件，png的图像、amr结尾的文件、plist文件、bundle文件等文件格式。</p>
+
+<!-- more -->
+
+
+<p>在其中有两个文件特别的眼熟，那就是<code>cordovaios.txt</code>和<code>WebViewJavascriptBridge.js.txt</code>文件，打开发现这两个文件没有经过改造，还是原来的配方。amr文件在<a href="http://codefunny.github.io/blog/2014/11/17/hybird-ios/">上一篇</a>已经说明是可压缩文件，大家可以解压缩看看里面的内容，就发现实际上都是一堆js、html、css文件。我们后面再来探秘这一块。</p>
+
+<p>现在我要去找一找传说的<code>AliPayBridge.js</code>在哪里呢，有一个<code>H5Service.bundle</code>引起了我的注意,打开显示里面的内容，在后面有几个js和plist文件，真相开始浮出水面了，打开h5_bridge.js文件，里面终于找到<code>window.AlipayJSBridge</code>的身影。</p>
+
+<p>我的javascript功能还处于初级阶段，也只能大概的了解一下作用，JSAPI主要定义了几大方法，</p>
+
+<blockquote><p>call、trigger、<em>invokeJS、</em>handleMessageFromObjC、_fetchQueue、loadPlugin</p></blockquote>
+
+<p>从名字就可以知道其用途，前面的好说，最后一个<code>loadPlugin</code>，用于载入一个或多个动态插件，采用js来实现动态加载，这个应该就是支付宝钱包最重要的一个方法了。</p>
+
+<p>还有一个<code>h5_bridge_for_scanApp.js</code>，里面有一个scanAppCallFunMap的Dictionary变量，看里面定义了几个重要的方法调用。</p>
+
+<p>前面提过<code>cordovaios.txt</code>，看来阿里是集众家之长，后面再去看一看了，现在我比较关心的是，如何集成这些独立的插件，还有就是如何有效的管理，实际上就是开发框架和安全问题了。</p>
+
+<p>前面我也提到了阿里的arale前端框架，这个框架在11000002.amr里面看到过，在淘宝和天猫页面，我发现了他们有使用另外一个框架KISSY。每个amr里面都有一个<code>Manifest.xml</code>文件和<code>CERT</code>文件，前面应该是配置文件，后面应该是安全相关的证书文件。这一套有机体如何配合完成整个框架还不清楚，继续摸索吧。</p>
+
+<p>这是zepto.js的一个小游戏，我替换了里面的data.js并修改了里面的一些参数，放在博客里面，发现前端的功能越来越好玩了，<a href="http://codefunny.github.io/class/app/lucky.html">点击去玩一玩吧</a></p>
+</div>
+
+</article>
+	
+
+<DIV style="font-size:12px;BORDER-BOTTOM: #bbbbbb 1px solid; BORDER-LEFT: #bbbbbb 1px solid; BACKGROUND: #f6f6f6; BORDER-TOP: #bbbbbb 1px solid; BORDER-RIGHT: #bbbbbb 1px solid" class=peterright> 
+<DIV style="MARGIN-TOP: 10px; FLOAT: left; MARGIN-LEFT: 5px; MARGIN-RIGHT: 10px"> 
+	<script type="text/javascript">
+		document.write("<img src='/images/custom_images/100-peter.jpg' alt='Profile Picture' style='width:90px;max_width: 100px; height:90px;max_height:100px;' />");
+</script>
+</DIV> 
+<DIV style="LINE-HEIGHT: 200%; MARGIN-TOP: 10px; COLOR: #000000"> 
+作者： <A href="http://Peter.github.io/">Peter</A> <br> 
+出处： <A href="http://codefunny.github.io/">http://codefunny.github.io/</A> 
+<br>本文基于<br>
+<a target="_blank" title="Creative Commons Attribution 2.5 China Mainland License" href="http://creativecommons.org/licenses/by/2.5/cn/"> 
+署名 2.5 中国大陆</a>许可协议发布，欢迎转载，演绎或用于商业目的，但是必须保留本文的署名 <a href="http://codefunny.github.io">Peter</a>（包含链接）。
+ </DIV>
+</DIV> 
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372347702608570" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<br>
+<br>
+<br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>
+<!-- UY END -->
+
+	
+	
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!--script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=" -->
+</div>
+
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+Copyright &copy; 2014
+
+    Peter
+
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+		</div>
+	</div>
+	
+
+
+
+
+
+
+
+
+<!-- baidu tongji  -->
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F34d22b7d6d470c1d99721ec921e0c96d' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+</body>
+</html>
