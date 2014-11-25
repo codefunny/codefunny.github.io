@@ -4,7 +4,7 @@
   <title><![CDATA[Category: hybrid | Peter's Blog]]></title>
   <link href="http://codefunny.github.io/blog/categories/hybrid/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2014-11-25T13:24:07+08:00</updated>
+  <updated>2014-11-25T13:32:08+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -18,10 +18,12 @@
     <link href="http://codefunny.github.io/blog/2014/11/25/hybrid-alipay-app/"/>
     <updated>2014-11-25T13:16:12+08:00</updated>
     <id>http://codefunny.github.io/blog/2014/11/25/hybrid-alipay-app</id>
-    <content type="html"><![CDATA[<p>探秘对象是iOS系统8.3.0版本支付宝钱包，拿到ipa文件之后，进行解压缩处理，从中我们可以看到这几类文件，png的图像、amr结尾的文件、plist文件、bundle文件等文件格式。</p>
+    <content type="html"><![CDATA[<p><img src="/images/custom_images/zhifubaoqianbao.jpg" alt="image" /></p>
 
 <!-- more -->
 
+
+<p>探秘对象是iOS系统8.3.0版本支付宝钱包，拿到ipa文件之后，进行解压缩处理，从中我们可以看到这几类文件，png的图像、amr结尾的文件、plist文件、bundle文件等文件格式。</p>
 
 <p>在其中有两个文件特别的眼熟，那就是<code>cordovaios.txt</code>和<code>WebViewJavascriptBridge.js.txt</code>文件，打开发现这两个文件没有经过改造，还是原来的配方。amr文件在<a href="http://codefunny.github.io/blog/2014/11/17/hybird-ios/">上一篇</a>已经说明是可压缩文件，大家可以解压缩看看里面的内容，就发现实际上都是一堆js、html、css文件。我们后面再来探秘这一块。</p>
 
