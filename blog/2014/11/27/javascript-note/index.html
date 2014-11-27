@@ -1,0 +1,420 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Javascript学习笔记 - Peter&#8217;s Blog</title>
+	<meta name="author" content="Peter">
+
+	
+	<meta name="description" content="博客、Peter">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Peter's Blog" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://codefunny.github.io/blog/2014/11/27/javascript-note/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<!--link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'-->
+	<script src="http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js"></script>
+	<!-- baidu zhanzhang -->
+<meta name="baidu-site-verification" content="gZTC7LLPAu" />
+
+  
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<!-- img src="http://www.gravatar.com/avatar//images/custom_images/160-peter.jpg?s=160" alt="Profile Picture" style="width: 160px;" / -->
+	<img src="/images/custom_images/160-peter.jpg" alt="Profile Picture" style="width: 160px;" />
+	
+</div>
+<h1><a href="/">Peter</a></h1>
+<p class="subtitle">数风流人物<br>还看今朝</p>
+
+<nav id="main-nav"><ul class="main">
+    <li><a href="/">首页</a></li>
+    <li><a href="/blog/archives">所有文章</a></li>
+    <li><a href="/about">关于我</a></li>
+</ul>
+
+
+<section class="aboutme">
+  <p>
+    博客、Peter
+  </p>
+</section>
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+			<a class="email" href="mailto:winchaozheng@gmail.com" title="Email">Email</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<!-- add weixin  -->
+欢迎关注我的微信公众账号<br>
+<div align=center><img width="100" height="100" src="/images/qrcode_for_gh_weixin_430.jpg"></div>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">Javascript学习笔记</h1>
+	<div class="entry-content" itemprop="articleBody"><p>Javascript学习笔记</p>
+
+<!-- more -->
+
+
+<h1>javascript模块化编写</h1>
+
+<pre><code>event = function(){
+    return {
+        bind: function(){},
+        unbind: function(){},
+        trigger: function(){}
+    };
+}();
+</code></pre>
+
+<p>可以参考jQuery的匿名函数执行写法</p>
+
+<pre><code>(function(window){
+    //..
+    // exports
+    window.jQuery = window.$ = jQuery;
+})(window);
+</code></pre>
+
+<p>Seajs的写法</p>
+
+<pre><code>this.seajs = { _seajs: this.seajs };
+</code></pre>
+
+<p>其实上面的this也可以去掉，如Ext</p>
+
+<pre><code>Ext = {
+    version : '3.1.0'
+};
+</code></pre>
+
+<p>下面代码经过在chrome浏览器测试可以运行</p>
+
+<pre><code>//jQuery写法
+;(function(window){
+
+    animate = {
+        Cat:Cat
+    }
+
+    function Cat(name,color){
+        this.name = name;
+        this.color = color;
+        this.type = '猫科动物';
+        this.eat = function(){ alert('mouse');};
+    }
+
+    window.animate = animate;
+
+})(window);
+
+//执行函数之后，myevent就是{}对象了。
+myevent = function(){
+    function _show(){
+        alert('this is show!');
+    }
+
+    return {
+        show : _show
+    };
+}();
+
+//seajs写法
+this.peterjs = {_peterjs: this.peterjs};
+peterjs = {
+    show : function(){
+        alert('this is peterjs');
+    }
+};
+
+peterjs.version = '1.1.0';
+
+//ext写法
+Ext = {
+    version : '3.1.0'
+};
+</code></pre>
+
+<p>【参考】</p>
+
+<ol>
+<li><a href="http://www.cnblogs.com/snandy/archive/2012/03/08/2378441.html">http://www.cnblogs.com/snandy/archive/2012/03/08/2378441.html</a></li>
+</ol>
+
+
+<h1>Javascript面向对象方法</h1>
+
+<h4>constructor属性和instanceof方法</h4>
+
+<p>constructor属性指向它们的构造函数；<br/>
+instanceof运算符，验证原型对象与实例对象之间的关系；</p>
+
+<h4>prototype模式</h4>
+
+<p>javascript规定，每一个构造函数都有一个prototype属性，指向另一个对象。这个对象的所有属性和方法，都会被构造函数的实例继承。意味着，可以将那些不变的属性和方法，直接定义在prototype对象上。</p>
+
+<pre><code>function Cat(name,color){
+    this.name = name;
+    this.color = color;
+}
+//注意是类名不是实例名
+Cat.prototype.type = '猫科动物';
+Cat.prototype.eat = function(){ alert('eatmouse'); };
+
+var cat1 = new Cat('damao','orange');
+alert(cat1.type);
+cat1.eat();
+</code></pre>
+
+<h4>isPrototypeOf()和hasOwnProperty()方法与in运算符</h4>
+
+<ol>
+<li>isPrototype()用来判断某个prototype对象和某个实例之间的关系</li>
+<li>hasOwnProperty()用来判断某一个属性到底是本地属性还是继承自prototype对象的属性.</li>
+<li>用于判断某个实例是否含有某个属性，不管是不是本地属性</li>
+</ol>
+
+
+<p>下面代码帮助理解：</p>
+
+<pre><code>alert(Cat.prototype.isPrototypeOf(cat1)); //true
+alert(cat1.hasOwnProperty('name')); //true
+alert(cat1.hasOwnProperty('type')); //false
+alert('name' in cat1); //true
+alert('type' in cat1); //true
+</code></pre>
+
+<p>【参考】
+1. <a href="http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_inheritance.html">http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_inheritance.html</a></p>
+
+<h1>Javascript构造函数的继承</h1>
+
+<p>对象之间继承的5种方法</p>
+
+<pre><code>function Animal(){
+    this.species = "animate";
+}
+
+function Cat(name,color){
+    this.name = name;
+    this.color = color;
+}
+</code></pre>
+
+<p>一、 构造函数绑定
+使用call或apple方法，将父对象的构造函数绑定在子对象上</p>
+
+<pre><code>function Cat(name,color){
+    Animal.apply(this, arguments);
+    this.name = name;
+    this.color = color;
+}
+
+var cat1 = new Cat('tom','blue');
+alert(cat1.species);
+</code></pre>
+
+<p>二、prototype模式</p>
+
+<pre><code>Cat.prototype = new Animal();
+Cat.prototype.constructor = Cat;
+var cat1 = new Cat('tome','blue');
+alert(cat1.species);
+</code></pre>
+
+<p>对上面需要说明的是第二行，因为第一行将Cat的prototype指向了一个新的对象，那么相应地prototype.constructor也就指向了Animal，不是我们要的结果，所以要加上第二行纠正。</p>
+
+<p>三、直接继承prototype（这个方法是有问题的）
+该方法是第二种方法的改进。由于Animal对象中不变的属性都可以直接写入Animal.prototype中，所以可以直接继承Animal.prototype。</p>
+
+<pre><code>function Animal(){}
+Animal.prototype.species = "Animal";
+Cat.prototype = Animal.prototype;
+Cat.prototype.constructor = Cat;
+</code></pre>
+
+<p>上面的代码执行效率比较高，因为不用执行和建立Animal的实例。但是有一个缺点就是，任何对Cat。prototype的修改都会反映到Animal.prototype上。就是说第四行实际上也把Animal的构造函数给改了。</p>
+
+<p>四、利用空对象作为中介（这是对上面方法的改进）</p>
+
+<pre><code>function extend(Child,Parent){
+    var F = function(){};
+    F.prototype = Parent.prototype;
+    Child.prototype = new F();
+    Child.prototype.constructor = Child;
+    Child.uber = Parent.prototype;
+}
+
+extend(Cat,Animal);
+var cat1 = new Cat('tom','blue');
+alert(cat1.species);
+</code></pre>
+
+<p>上面F是空对象，几乎不占内存。修改Cat的prototype对象，就不会影响到Animal的prototype对象。uber是备用，指向府对象的原型。</p>
+
+<p>五、拷贝继承</p>
+
+<pre><code>function extend1(Child,Parent){
+    var p = Parent.prototype;
+    var c = Child.prototype;
+    for(var i in p){
+        c[i] = p[i];
+    }
+
+    c.uber = p;
+}
+extend1(Cat,Animal);
+var cat1 = new Cat('tom','blue');
+alert(cat1.species);
+</code></pre>
+
+<h1>Javascript非构造函数继承</h1>
+
+<p>深拷贝(jQuery库使用的就是这种继承方法)</p>
+
+<pre><code>function deepCopy(p){
+    var c = c || {};
+    for(var i in p){
+        if(typeof p[i] === 'object'){
+           c[i] = (p[i].constructor === Array) ? [] : {};
+            deepCopy(p[i],c[i]);
+        } else {
+            c[i] = p[i];
+        }
+    }
+    return c;
+}
+</code></pre>
+</div>
+
+</article>
+	
+
+<DIV style="font-size:12px;BORDER-BOTTOM: #bbbbbb 1px solid; BORDER-LEFT: #bbbbbb 1px solid; BACKGROUND: #f6f6f6; BORDER-TOP: #bbbbbb 1px solid; BORDER-RIGHT: #bbbbbb 1px solid" class=peterright> 
+<DIV style="MARGIN-TOP: 10px; FLOAT: left; MARGIN-LEFT: 5px; MARGIN-RIGHT: 10px"> 
+	<script type="text/javascript">
+		document.write("<img src='/images/custom_images/100-peter.jpg' alt='Profile Picture' style='width:90px;max_width: 100px; height:90px;max_height:100px;' />");
+</script>
+</DIV> 
+<DIV style="LINE-HEIGHT: 200%; MARGIN-TOP: 10px; COLOR: #000000"> 
+作者： <A href="http://Peter.github.io/">Peter</A> <br> 
+出处： <A href="http://codefunny.github.io/">http://codefunny.github.io/</A> 
+<br>本文基于<br>
+<a target="_blank" title="Creative Commons Attribution 2.5 China Mainland License" href="http://creativecommons.org/licenses/by/2.5/cn/"> 
+署名 2.5 中国大陆</a>许可协议发布，欢迎转载，演绎或用于商业目的，但是必须保留本文的署名 <a href="http://codefunny.github.io">Peter</a>（包含链接）。
+ </DIV>
+</DIV> 
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372347702608570" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<br>
+<br>
+<br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>
+<!-- UY END -->
+
+	
+	
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!--script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=" -->
+</div>
+
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+Copyright &copy; 2014
+
+    Peter
+
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+		</div>
+	</div>
+	
+
+
+
+
+
+
+
+
+<!-- baidu tongji  -->
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F34d22b7d6d470c1d99721ec921e0c96d' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+</body>
+</html>

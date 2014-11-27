@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: javascript | Peter's Blog]]></title>
+  <link href="http://codefunny.github.io/blog/categories/javascript/atom.xml" rel="self"/>
+  <link href="http://codefunny.github.io/"/>
+  <updated>2014-11-27T18:09:48+08:00</updated>
+  <id>http://codefunny.github.io/</id>
+  <author>
+    <name><![CDATA[Peter]]></name>
+    <email><![CDATA[winchaozheng@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Javascript学习笔记]]></title>
+    <link href="http://codefunny.github.io/blog/2014/11/27/javascript-note/"/>
+    <updated>2014-11-27T18:08:26+08:00</updated>
+    <id>http://codefunny.github.io/blog/2014/11/27/javascript-note</id>
+    <content type="html"><![CDATA[<p>Javascript学习笔记</p>
+
+<!-- more -->
+
+
+<h1>javascript模块化编写</h1>
+
+<pre><code>event = function(){
+    return {
+        bind: function(){},
+        unbind: function(){},
+        trigger: function(){}
+    };
+}();
+</code></pre>
+
+<p>可以参考jQuery的匿名函数执行写法</p>
+
+<pre><code>(function(window){
+    //..
+    // exports
+    window.jQuery = window.$ = jQuery;
+})(window);
+</code></pre>
+
+<p>Seajs的写法</p>
+
+<pre><code>this.seajs = { _seajs: this.seajs };
+</code></pre>
+
+<p>其实上面的this也可以去掉，如Ext</p>
+
+<pre><code>Ext = {
+    version : '3.1.0'
+};
+</code></pre>
+
+<p>下面代码经过在chrome浏览器测试可以运行</p>
+
+<pre><code>//jQuery写法
+;(function(window){
+
+    animate = {
+        Cat:Cat
+    }
+
+    function Cat(name,color){
+        this.name = name;
+        this.color = color;
+        this.type = '猫科动物';
+        this.eat = function(){ alert('mouse');};
+    }
+
+    window.animate = animate;
+
+})(window);
+
+//执行函数之后，myevent就是{}对象了。
+myevent = function(){
+    function _show(){
+        alert('this is show!');
+    }
+
+    return {
+        show : _show
+    };
+}();
+
+//seajs写法
+this.peterjs = {_peterjs: this.peterjs};
+peterjs = {
+    show : function(){
+        alert('this is peterjs');
+    }
+};
+
+peterjs.version = '1.1.0';
+
+//ext写法
+Ext = {
+    version : '3.1.0'
+};
+</code></pre>
+
+<p>【参考】</p>
+
+<ol>
+<li><a href="http://www.cnblogs.com/snandy/archive/2012/03/08/2378441.html">http://www.cnblogs.com/snandy/archive/2012/03/08/2378441.html</a></li>
+</ol>
+
+
+<h1>Javascript面向对象方法</h1>
+
+<h4>constructor属性和instanceof方法</h4>
+
+<p>constructor属性指向它们的构造函数；<br/>
+instanceof运算符，验证原型对象与实例对象之间的关系；</p>
+
+<h4>prototype模式</h4>
+
+<p>javascript规定，每一个构造函数都有一个prototype属性，指向另一个对象。这个对象的所有属性和方法，都会被构造函数的实例继承。意味着，可以将那些不变的属性和方法，直接定义在prototype对象上。</p>
+
+<pre><code>function Cat(name,color){
+    this.name = name;
+    this.color = color;
+}
+//注意是类名不是实例名
+Cat.prototype.type = '猫科动物';
+Cat.prototype.eat = function(){ alert('eatmouse'); };
+
+var cat1 = new Cat('damao','orange');
+alert(cat1.type);
+cat1.eat();
+</code></pre>
+
+<h4>isPrototypeOf()和hasOwnProperty()方法与in运算符</h4>
+
+<ol>
+<li>isPrototype()用来判断某个prototype对象和某个实例之间的关系</li>
+<li>hasOwnProperty()用来判断某一个属性到底是本地属性还是继承自prototype对象的属性.</li>
+<li>用于判断某个实例是否含有某个属性，不管是不是本地属性</li>
+</ol>
+
+
+<p>下面代码帮助理解：</p>
+
+<pre><code>alert(Cat.prototype.isPrototypeOf(cat1)); //true
+alert(cat1.hasOwnProperty('name')); //true
+alert(cat1.hasOwnProperty('type')); //false
+alert('name' in cat1); //true
+alert('type' in cat1); //true
+</code></pre>
+
+<p>【参考】
+1. <a href="http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_inheritance.html">http://www.ruanyifeng.com/blog/2010/05/object-oriented_javascript_inheritance.html</a></p>
+
+<h1>Javascript构造函数的继承</h1>
+
+<p>对象之间继承的5种方法</p>
+
+<pre><code>function Animal(){
+    this.species = "animate";
+}
+
+function Cat(name,color){
+    this.name = name;
+    this.color = color;
+}
+</code></pre>
+
+<p>一、 构造函数绑定
+使用call或apple方法，将父对象的构造函数绑定在子对象上</p>
+
+<pre><code>function Cat(name,color){
+    Animal.apply(this, arguments);
+    this.name = name;
+    this.color = color;
+}
+
+var cat1 = new Cat('tom','blue');
+alert(cat1.species);
+</code></pre>
+
+<p>二、prototype模式</p>
+
+<pre><code>Cat.prototype = new Animal();
+Cat.prototype.constructor = Cat;
+var cat1 = new Cat('tome','blue');
+alert(cat1.species);
+</code></pre>
+
+<p>对上面需要说明的是第二行，因为第一行将Cat的prototype指向了一个新的对象，那么相应地prototype.constructor也就指向了Animal，不是我们要的结果，所以要加上第二行纠正。</p>
+
+<p>三、直接继承prototype（这个方法是有问题的）
+该方法是第二种方法的改进。由于Animal对象中不变的属性都可以直接写入Animal.prototype中，所以可以直接继承Animal.prototype。</p>
+
+<pre><code>function Animal(){}
+Animal.prototype.species = "Animal";
+Cat.prototype = Animal.prototype;
+Cat.prototype.constructor = Cat;
+</code></pre>
+
+<p>上面的代码执行效率比较高，因为不用执行和建立Animal的实例。但是有一个缺点就是，任何对Cat。prototype的修改都会反映到Animal.prototype上。就是说第四行实际上也把Animal的构造函数给改了。</p>
+
+<p>四、利用空对象作为中介（这是对上面方法的改进）</p>
+
+<pre><code>function extend(Child,Parent){
+    var F = function(){};
+    F.prototype = Parent.prototype;
+    Child.prototype = new F();
+    Child.prototype.constructor = Child;
+    Child.uber = Parent.prototype;
+}
+
+extend(Cat,Animal);
+var cat1 = new Cat('tom','blue');
+alert(cat1.species);
+</code></pre>
+
+<p>上面F是空对象，几乎不占内存。修改Cat的prototype对象，就不会影响到Animal的prototype对象。uber是备用，指向府对象的原型。</p>
+
+<p>五、拷贝继承</p>
+
+<pre><code>function extend1(Child,Parent){
+    var p = Parent.prototype;
+    var c = Child.prototype;
+    for(var i in p){
+        c[i] = p[i];
+    }
+
+    c.uber = p;
+}
+extend1(Cat,Animal);
+var cat1 = new Cat('tom','blue');
+alert(cat1.species);
+</code></pre>
+
+<h1>Javascript非构造函数继承</h1>
+
+<p>深拷贝(jQuery库使用的就是这种继承方法)</p>
+
+<pre><code>function deepCopy(p){
+    var c = c || {};
+    for(var i in p){
+        if(typeof p[i] === 'object'){
+           c[i] = (p[i].constructor === Array) ? [] : {};
+            deepCopy(p[i],c[i]);
+        } else {
+            c[i] = p[i];
+        }
+    }
+    return c;
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>
