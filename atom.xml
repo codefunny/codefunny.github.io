@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2014-12-02T18:27:57+08:00</updated>
+  <updated>2014-12-02T18:29:25+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -18,7 +18,7 @@
     <link href="http://codefunny.github.io/blog/2014/12/02/objc-runtime/"/>
     <updated>2014-12-02T18:19:36+08:00</updated>
     <id>http://codefunny.github.io/blog/2014/12/02/objc-runtime</id>
-    <content type="html"><![CDATA[<p><img src="" title="/images/custom_images/objc-800.jpg" alt="object-c" /></p>
+    <content type="html"><![CDATA[<p><img src="http://codefunny.github.io/images/custom_images/objc-800.jpg" alt="object-c" /></p>
 
 <!-- more -->
 
