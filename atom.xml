@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2014-12-03T16:33:27+08:00</updated>
+  <updated>2014-12-04T17:26:05+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -14,7 +14,262 @@
 
   
   <entry>
-    <title type="html"><![CDATA[360安全疑云]]></title>
+    <title type="html"><![CDATA[IC卡交易中MAC的计算方式]]></title>
+    <link href="http://codefunny.github.io/blog/2014/12/04/ic-card-encrypt/"/>
+    <updated>2014-12-04T17:08:24+08:00</updated>
+    <id>http://codefunny.github.io/blog/2014/12/04/ic-card-encrypt</id>
+    <content type="html"><![CDATA[<p><img src="http://codefunny.github.io/images/custom_images/yinlian-800.jpg" alt="image" /></p>
+
+<!-- more -->
+
+
+<h2>报文鉴别码（MAC）的计算方法</h2>
+
+<h4>1.基于分组算法的MAC</h4>
+
+<p>依照ISO/IEC 9797-1规范，使用密钥长度为128位的对称加密算法采用CBC模式对任意长度的报文计算8字节MAC值。（就是采用3DES的CBC模式）</p>
+
+<center>MAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   M       </th>
+<th style="text-align:center;"> 明文消息  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   C       </td>
+<td style="text-align:center;">  密文消息   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   Mac     </td>
+<td style="text-align:center;">  消息认证码   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   IV      </td>
+<td style="text-align:center;">初始向量</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Ek(M)   </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>算法说明：</p>
+
+<ol>
+<li>在明文M后附加0x80,然后在右端填充最少的0x00，使得填充后消息M = (M||80||00||00||&hellip;||00)的长度为8的整数倍。然后将M分为8字节(文档上是16字节，但我认为是不正确的)的块M1，M2，M3，&hellip;，Mn；</li>
+<li>将密钥K分为8字节的两部分KL和KR，初始向量IV = (00||00||00||00||00||00||00||00)；</li>
+<li>计算过程如下，C0 = IV， Ci = Ekl(Mi ^ Ci-1) i=1,2,&hellip;,n</li>
+<li>最后一块数据再作如下计算Mac = Ekl(Dkr(Cn))</li>
+</ol>
+
+
+<p>对上面3，4步骤说明如下，Mi异或C(i-1)，结果采用KL进行DES加密处理，以此循环，得到最后的Cn，采用KR对Cn进行DES解密处理，然后再采用KL进行DES加密处理，得到的结果就是8字节的MAC值。</p>
+
+<h4>2.基于SM4的MAC</h4>
+
+<p>SM4和上面类似，不过其采用的是SM4算法，采用密钥长度为128位的对称加密算法采用CBC模式对任意长度的报文计算16字节MAC值。</p>
+
+<center>MAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   M       </th>
+<th style="text-align:center;"> 明文消息  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   C       </td>
+<td style="text-align:center;">  密文消息   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   Mac     </td>
+<td style="text-align:center;">  消息认证码   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   IV      </td>
+<td style="text-align:center;">初始向量</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Ek(M)   </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>其算法作下说明：</p>
+
+<ol>
+<li>在明文M后附加0x80,然后在右端填充最少的0x00，使得填充后消息M = (M||80||00||00||&hellip;||00)的长度为<strong>16的整数倍</strong>。然后将M分为16字节的块M1，M2，M3，&hellip;，Mn；</li>
+<li>初始向量IV = (00||00||00||00||00||00||00||00||00||00||00||00||00||00||00||00)；</li>
+<li>计算过程如下，C0 = IV， Ci = Ek(Mi ^ Ci-1) i=1,2,&hellip;,n</li>
+<li>取最后一块左8字节作为MAC：Mac = LEFT(Cn)</li>
+</ol>
+
+
+<h4>3.基于HASH算法的HMAC</h4>
+
+<p>HMAC算法依照FIPS规范，使用摘要算法生成HMAC</p>
+
+<center>HMAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   ipad        </th>
+<th style="text-align:center;"> 填充字符串，内容为：8位字节0x36 重复64次  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   opad        </td>
+<td style="text-align:center;">  填充字符串，内容为：8位字节0x5c,重复64次   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   text        </td>
+<td style="text-align:center;">  所输入的需要计算MAC的数据，不包括填充字符串 </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   t       </td>
+<td style="text-align:center;">所得MAC的字节长度</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Hash安全哈希算法  </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>其计算公式如下：</p>
+
+<p>MAC(text)t = HAMC(K,text)t = Hash((K0 ^ opad) || Hash((K0 ^ ipad)||text))</p>
+
+<p>对上面公式说明如下：</p>
+
+<ol>
+<li>若K = 64 ，令K0 = K,跳转到步骤4</li>
+<li>若K > 64 , 令K0 = Hash(K)，跳转到步骤4</li>
+<li>若K &lt; 64 , 则在K末尾补字节0x00产生64字节K0</li>
+<li>K0与ipad异或产生64字节字符串：K0 ^ ipad</li>
+<li>将text追加到步骤4的末尾：(K0 ^ ipad) || text</li>
+<li>将步骤5得到的字符串进行哈希得到：Hash((K0 ^ ipad) || text)</li>
+<li>K0与opad异或：K0 ^ opad</li>
+<li>将步骤6产生的结果追加到步骤7的结果末尾：(K0 ^ opad) || Hash((K0 ^ ipad) || text)</li>
+<li>对步骤8的结果做哈希得到：Hash((K0 ^ opad) || Hash((K0 ^ ipad) || text))</li>
+<li>步骤9得到的哈希值作为MAC值。</li>
+</ol>
+
+
+<h4>4.基于SM3的HMAC</h4>
+
+<p>HMAC算法依照FIPS规范，使用SM3算法生成HMAC</p>
+
+<center>HMAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   ipad        </th>
+<th style="text-align:center;"> 填充字符串，内容为：8位字节0x36 重复<strong>32</strong>次  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   opad        </td>
+<td style="text-align:center;">  填充字符串，内容为：8位字节0x5c,重复<strong>32</strong>次   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   text        </td>
+<td style="text-align:center;">  所输入的需要计算MAC的数据，不包括填充字符串 </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   t       </td>
+<td style="text-align:center;">所得MAC的字节长度</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Hash安全哈希算法  </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>其计算公式如下：</p>
+
+<p>MAC(text)t = HAMC(K,text)t = Hash((K0 ^ opad) || Hash((K0 ^ ipad)||text))</p>
+
+<p>对上面公式说明如下：</p>
+
+<ol>
+<li>若K = 32 ，令K0 = K,跳转到步骤4</li>
+<li>若K > 32 , 令K0 = Hash(K)，跳转到步骤4</li>
+<li>若K &lt; 32 , 则在K末尾补字节0x00产生32字节K0</li>
+<li>K0与ipad异或产生32字节字符串：K0 ^ ipad</li>
+<li>将text追加到步骤4的末尾：(K0 ^ ipad) || text</li>
+<li>将步骤5得到的字符串进行哈希得到：Hash((K0 ^ ipad) || text)</li>
+<li>K0与opad异或：K0 ^ opad</li>
+<li>将步骤6产生的结果追加到步骤7的结果末尾：(K0 ^ opad) || Hash((K0 ^ ipad) || text)</li>
+<li>对步骤8的结果做哈希得到：Hash((K0 ^ opad) || Hash((K0 ^ ipad) || text))</li>
+<li>步骤9得到的哈希值作为MAC值。</li>
+</ol>
+
+
+<p>[参考]</p>
+
+<ol>
+<li>[中国金融集成电路(IC)卡规范 第16部分]</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[傅盛之路]]></title>
     <link href="http://codefunny.github.io/blog/2014/12/03/internet-history/"/>
     <updated>2014-12-03T16:19:45+08:00</updated>
     <id>http://codefunny.github.io/blog/2014/12/03/internet-history</id>

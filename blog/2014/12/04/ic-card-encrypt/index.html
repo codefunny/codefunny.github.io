@@ -1,0 +1,433 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>IC卡交易中MAC的计算方式 - Peter&#8217;s Blog</title>
+	<meta name="author" content="Peter">
+
+	
+	<meta name="description" content="博客、Peter">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Peter's Blog" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://codefunny.github.io/blog/2014/12/04/ic-card-encrypt/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<!--link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'-->
+	<script src="http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js"></script>
+	<!-- baidu zhanzhang -->
+<meta name="baidu-site-verification" content="gZTC7LLPAu" />
+
+  
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<!-- img src="http://www.gravatar.com/avatar//images/custom_images/160-peter.jpg?s=160" alt="Profile Picture" style="width: 160px;" / -->
+	<img src="/images/custom_images/160-peter.jpg" alt="Profile Picture" style="width: 160px;" />
+	
+</div>
+<h1><a href="/">Peter</a></h1>
+<p class="subtitle">数风流人物<br>还看今朝</p>
+
+<nav id="main-nav"><ul class="main">
+    <li><a href="/">首页</a></li>
+    <li><a href="/blog/archives">所有文章</a></li>
+    <li><a href="/about">关于我</a></li>
+</ul>
+
+
+<section class="aboutme">
+  <p>
+    博客、Peter
+  </p>
+</section>
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+			<a class="email" href="mailto:winchaozheng@gmail.com" title="Email">Email</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<!-- add weixin  -->
+欢迎关注我的微信公众账号<br>
+<div align=center><img width="100" height="100" src="/images/qrcode_for_gh_weixin_430.jpg"></div>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">IC卡交易中MAC的计算方式</h1>
+	<div class="entry-content" itemprop="articleBody"><p><img src="/images/custom_images/yinlian-800.jpg" alt="image" /></p>
+
+<!-- more -->
+
+
+<h2>报文鉴别码（MAC）的计算方法</h2>
+
+<h4>1.基于分组算法的MAC</h4>
+
+<p>依照ISO/IEC 9797-1规范，使用密钥长度为128位的对称加密算法采用CBC模式对任意长度的报文计算8字节MAC值。（就是采用3DES的CBC模式）</p>
+
+<center>MAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   M       </th>
+<th style="text-align:center;"> 明文消息  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   C       </td>
+<td style="text-align:center;">  密文消息   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   Mac     </td>
+<td style="text-align:center;">  消息认证码   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   IV      </td>
+<td style="text-align:center;">初始向量</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Ek(M)   </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>算法说明：</p>
+
+<ol>
+<li>在明文M后附加0x80,然后在右端填充最少的0x00，使得填充后消息M = (M||80||00||00||&hellip;||00)的长度为8的整数倍。然后将M分为8字节(文档上是16字节，但我认为是不正确的)的块M1，M2，M3，&hellip;，Mn；</li>
+<li>将密钥K分为8字节的两部分KL和KR，初始向量IV = (00||00||00||00||00||00||00||00)；</li>
+<li>计算过程如下，C0 = IV， Ci = Ekl(Mi ^ Ci-1) i=1,2,&hellip;,n</li>
+<li>最后一块数据再作如下计算Mac = Ekl(Dkr(Cn))</li>
+</ol>
+
+
+<p>对上面3，4步骤说明如下，Mi异或C(i-1)，结果采用KL进行DES加密处理，以此循环，得到最后的Cn，采用KR对Cn进行DES解密处理，然后再采用KL进行DES加密处理，得到的结果就是8字节的MAC值。</p>
+
+<h4>2.基于SM4的MAC</h4>
+
+<p>SM4和上面类似，不过其采用的是SM4算法，采用密钥长度为128位的对称加密算法采用CBC模式对任意长度的报文计算16字节MAC值。</p>
+
+<center>MAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   M       </th>
+<th style="text-align:center;"> 明文消息  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   C       </td>
+<td style="text-align:center;">  密文消息   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   Mac     </td>
+<td style="text-align:center;">  消息认证码   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   IV      </td>
+<td style="text-align:center;">初始向量</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Ek(M)   </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>其算法作下说明：</p>
+
+<ol>
+<li>在明文M后附加0x80,然后在右端填充最少的0x00，使得填充后消息M = (M||80||00||00||&hellip;||00)的长度为<strong>16的整数倍</strong>。然后将M分为16字节的块M1，M2，M3，&hellip;，Mn；</li>
+<li>初始向量IV = (00||00||00||00||00||00||00||00||00||00||00||00||00||00||00||00)；</li>
+<li>计算过程如下，C0 = IV， Ci = Ek(Mi ^ Ci-1) i=1,2,&hellip;,n</li>
+<li>取最后一块左8字节作为MAC：Mac = LEFT(Cn)</li>
+</ol>
+
+
+<h4>3.基于HASH算法的HMAC</h4>
+
+<p>HMAC算法依照FIPS规范，使用摘要算法生成HMAC</p>
+
+<center>HMAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   ipad        </th>
+<th style="text-align:center;"> 填充字符串，内容为：8位字节0x36 重复64次  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   opad        </td>
+<td style="text-align:center;">  填充字符串，内容为：8位字节0x5c,重复64次   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   text        </td>
+<td style="text-align:center;">  所输入的需要计算MAC的数据，不包括填充字符串 </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   t       </td>
+<td style="text-align:center;">所得MAC的字节长度</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Hash安全哈希算法  </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>其计算公式如下：</p>
+
+<p>MAC(text)t = HAMC(K,text)t = Hash((K0 ^ opad) || Hash((K0 ^ ipad)||text))</p>
+
+<p>对上面公式说明如下：</p>
+
+<ol>
+<li>若K = 64 ，令K0 = K,跳转到步骤4</li>
+<li>若K > 64 , 令K0 = Hash(K)，跳转到步骤4</li>
+<li>若K &lt; 64 , 则在K末尾补字节0x00产生64字节K0</li>
+<li>K0与ipad异或产生64字节字符串：K0 ^ ipad</li>
+<li>将text追加到步骤4的末尾：(K0 ^ ipad) || text</li>
+<li>将步骤5得到的字符串进行哈希得到：Hash((K0 ^ ipad) || text)</li>
+<li>K0与opad异或：K0 ^ opad</li>
+<li>将步骤6产生的结果追加到步骤7的结果末尾：(K0 ^ opad) || Hash((K0 ^ ipad) || text)</li>
+<li>对步骤8的结果做哈希得到：Hash((K0 ^ opad) || Hash((K0 ^ ipad) || text))</li>
+<li>步骤9得到的哈希值作为MAC值。</li>
+</ol>
+
+
+<h4>4.基于SM3的HMAC</h4>
+
+<p>HMAC算法依照FIPS规范，使用SM3算法生成HMAC</p>
+
+<center>HMAC算法参数说明</center>
+
+
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">   ipad        </th>
+<th style="text-align:center;"> 填充字符串，内容为：8位字节0x36 重复<strong>32</strong>次  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">   opad        </td>
+<td style="text-align:center;">  填充字符串，内容为：8位字节0x5c,重复<strong>32</strong>次   </td>
+</tr>
+<tr>
+<td style="text-align:center;">   text        </td>
+<td style="text-align:center;">  所输入的需要计算MAC的数据，不包括填充字符串 </td>
+</tr>
+<tr>
+<td style="text-align:center;">   K       </td>
+<td style="text-align:center;">MAC密钥</td>
+</tr>
+<tr>
+<td style="text-align:center;">   t       </td>
+<td style="text-align:center;">所得MAC的字节长度</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Hash安全哈希算法  </td>
+<td style="text-align:center;">使用密钥K对M进行加密</td>
+</tr>
+<tr>
+<td style="text-align:center;">   Dk&copy;   </td>
+<td style="text-align:center;">使用密钥K对C进行解密</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>其计算公式如下：</p>
+
+<p>MAC(text)t = HAMC(K,text)t = Hash((K0 ^ opad) || Hash((K0 ^ ipad)||text))</p>
+
+<p>对上面公式说明如下：</p>
+
+<ol>
+<li>若K = 32 ，令K0 = K,跳转到步骤4</li>
+<li>若K > 32 , 令K0 = Hash(K)，跳转到步骤4</li>
+<li>若K &lt; 32 , 则在K末尾补字节0x00产生32字节K0</li>
+<li>K0与ipad异或产生32字节字符串：K0 ^ ipad</li>
+<li>将text追加到步骤4的末尾：(K0 ^ ipad) || text</li>
+<li>将步骤5得到的字符串进行哈希得到：Hash((K0 ^ ipad) || text)</li>
+<li>K0与opad异或：K0 ^ opad</li>
+<li>将步骤6产生的结果追加到步骤7的结果末尾：(K0 ^ opad) || Hash((K0 ^ ipad) || text)</li>
+<li>对步骤8的结果做哈希得到：Hash((K0 ^ opad) || Hash((K0 ^ ipad) || text))</li>
+<li>步骤9得到的哈希值作为MAC值。</li>
+</ol>
+
+
+<p>[参考]</p>
+
+<ol>
+<li>[中国金融集成电路(IC)卡规范 第16部分]</li>
+</ol>
+
+</div>
+
+</article>
+	
+
+<DIV style="font-size:12px;BORDER-BOTTOM: #bbbbbb 1px solid; BORDER-LEFT: #bbbbbb 1px solid; BACKGROUND: #f6f6f6; BORDER-TOP: #bbbbbb 1px solid; BORDER-RIGHT: #bbbbbb 1px solid" class=peterright> 
+<DIV style="MARGIN-TOP: 10px; FLOAT: left; MARGIN-LEFT: 5px; MARGIN-RIGHT: 10px"> 
+	<script type="text/javascript">
+		document.write("<img src='/images/custom_images/100-peter.jpg' alt='Profile Picture' style='width:90px;max_width: 100px; height:90px;max_height:100px;' />");
+</script>
+</DIV> 
+<DIV style="LINE-HEIGHT: 200%; MARGIN-TOP: 10px; COLOR: #000000"> 
+作者： <A href="http://Peter.github.io/">Peter</A> <br> 
+出处： <A href="http://codefunny.github.io/">http://codefunny.github.io/</A> 
+<br>本文基于<br>
+<a target="_blank" title="Creative Commons Attribution 2.5 China Mainland License" href="http://creativecommons.org/licenses/by/2.5/cn/"> 
+署名 2.5 中国大陆</a>许可协议发布，欢迎转载，演绎或用于商业目的，但是必须保留本文的署名 <a href="http://codefunny.github.io">Peter</a>（包含链接）。
+ </DIV>
+</DIV> 
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372347702608570" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<br>
+<br>
+<br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>
+<!-- UY END -->
+
+	
+	
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!--script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=" -->
+</div>
+
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+Copyright &copy; 2014
+
+    Peter
+
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+		</div>
+	</div>
+	
+
+
+
+
+
+
+
+
+<!-- baidu tongji  -->
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F34d22b7d6d470c1d99721ec921e0c96d' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+</body>
+</html>
