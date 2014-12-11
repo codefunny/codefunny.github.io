@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2014-12-08T15:34:27+08:00</updated>
+  <updated>2014-12-11T17:01:43+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -12,6 +12,360 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[iOS安全攻防学习笔记]]></title>
+    <link href="http://codefunny.github.io/blog/2014/12/11/ios-safe/"/>
+    <updated>2014-12-11T16:59:43+08:00</updated>
+    <id>http://codefunny.github.io/blog/2014/12/11/ios-safe</id>
+    <content type="html"><![CDATA[<p>前言</p>
+
+<p>在CSDN上发现<a href="http://blog.csdn.net/column/details/hackingios.html?&amp;page=2">程序媛念茜的iOS安全攻防专栏</a>系列文章，在程序猿这个男性居多的行业里见到一女中豪杰，真是巾帼不让须眉，十分佩服念茜，这里就记录一下学习的笔记吧。感谢分享！</p>
+
+<!-- more -->
+
+
+<h4>工具和命令</h4>
+
+<table>
+<thead>
+<tr>
+<th style="text-align:left;"> ps </th>
+<th style="text-align:left;"> 显示进程，cpu使用率，内存使用情况等 </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;"> sysctl </td>
+<td style="text-align:left;"> 检查设定Kernel配置 </td>
+</tr>
+<tr>
+<td style="text-align:left;">netstat</td>
+<td style="text-align:left;">显示网络连接，路由表，接口状态等</td>
+</tr>
+<tr>
+<td style="text-align:left;">route</td>
+<td style="text-align:left;">路由</td>
+</tr>
+<tr>
+<td style="text-align:left;">renice</td>
+<td style="text-align:left;">调整程序运行优先级</td>
+</tr>
+<tr>
+<td style="text-align:left;">ifconfig</td>
+<td style="text-align:left;">查看网络配置</td>
+</tr>
+<tr>
+<td style="text-align:left;">tcpdump</td>
+<td style="text-align:left;">截获分析网络数据包</td>
+</tr>
+<tr>
+<td style="text-align:left;">lsof</td>
+<td style="text-align:left;">列出当前系统打开的文件列表</td>
+</tr>
+<tr>
+<td style="text-align:left;">otool</td>
+<td style="text-align:left;">查看程序依赖的动态库信息，反编代码段。。。</td>
+</tr>
+<tr>
+<td style="text-align:left;">nm</td>
+<td style="text-align:left;">显示符号表</td>
+</tr>
+<tr>
+<td style="text-align:left;">ldid</td>
+<td style="text-align:left;">签名工具</td>
+</tr>
+</tbody>
+</table>
+
+
+<p><code>otool -L exe</code> : 显示可执行程序连接了哪些库<br>
+<code>otool -tV exe</code>: 反编译exe的<strong>TEXT</strong>段内容<br>
+<code>nm -g exe</code>: 显示程序符号表</p>
+
+<h4>阻止GDB依附</h4>
+
+<p>常规的办法是：</p>
+
+<pre><code>#import &lt;sys/ptrace.h&gt;  
+
+int main(int argc, charchar *argv[])  
+{  
+#ifndef DEBUG  
+    ptrace(PT_DENY_ATTACH,0,0,0);  
+#endif  
+    @autoreleasepool {  
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([WQMainPageAppDelegate class]));  
+    }  
+}  
+</code></pre>
+
+<p>但是iPhone真实环境没有sys/ptrace.h的，但是可以通过dlopen拿到它。</p>
+
+<p>dlopen：当path参数为0时，他会自动查找$LD_LIBRARY_PATH,$DYLD_LIBRARY_PATH,$DYLD_FALLBACK_LIBRARY_PATH和当前工作目录中的动态链接库。</p>
+
+<pre><code>#import &lt;dlfcn.h&gt;  
+#import &lt;sys/types.h&gt;  
+
+typedef int (*ptrace_ptr_t)(int _request, pid_t _pid, caddr_t _addr, int _data);  
+#if !defined(PT_DENY_ATTACH)  
+#define PT_DENY_ATTACH 31  
+#endif  // !defined(PT_DENY_ATTACH)  
+
+void disable_gdb() {  
+    void* handle = dlopen(0, RTLD_GLOBAL | RTLD_NOW);  
+    ptrace_ptr_t ptrace_ptr = dlsym(handle, "ptrace");  
+    ptrace_ptr(PT_DENY_ATTACH, 0, 0, 0);  
+    dlclose(handle);  
+}  
+
+int main(int argc, charchar *argv[])  
+{  
+#ifndef DEBUG  
+    disable_gdb();  
+#endif  
+    @autoreleasepool {  
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([WQMainPageAppDelegate class]));  
+    }  
+}
+</code></pre>
+
+<p><strong>上述方法经过校验可行，但是不知道放在正式版app中是否会被apple驳回。</strong></p>
+
+<h4>二进制和资源文件自检</h4>
+
+<p>hackers们破解app，一般动2个地方，一个是二进制，一个是资源文件。二进制都重新编译了，当然是盗版，但修改资源文件是不需要重新编译二进制文件。</p>
+
+<p>那么，我们有必要在敏感的请求报文中，增加正版应用的二进制和资源文件的标识，让服务器知道，此请求是否来自正版未经修改的app。在沙盒中，读到自己程序的二进制，也可读到资源文件签名文件，对其取md5值然后以某种组合算法得到一个标记字符串，然后发给服务器。</p>
+
+<p>下面是念茜封装的读取文件地址代码</p>
+
+<pre><code>@implementation WQPathUtilities  
+
++ (NSString *)directory:(NSSearchPathDirectory)dir  
+{  
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(dir, NSUserDomainMask, YES);  
+    NSString *dirStr = [paths objectAtIndex:0];  
+    return dirStr;  
+}  
+
++ (NSString *)documentsDirectory  
+{  
+    return [WQPathUtilities directory:NSDocumentDirectory];  
+}  
+
++ (NSString *)cachesDirectory  
+{  
+    return [WQPathUtilities directory:NSCachesDirectory];  
+}  
+
++ (NSString *)tmpDirectory  
+{  
+    return NSTemporaryDirectory();  
+}  
+
++ (NSString *)homeDirectory  
+{  
+    return NSHomeDirectory();  
+}  
+
++ (NSString *)codeResourcesPath  
+{  
+    NSString *excutableName = [[NSBundle mainBundle] infoDictionary][@"CFBundleExecutable"];  
+    NSString *tmpPath = [[WQPathUtilities documentsDirectory] stringByDeletingLastPathComponent];  
+    NSString *appPath = [[tmpPath stringByAppendingPathComponent:excutableName]  
+                         stringByAppendingPathExtension:@"app"];  
+    NSString *sigPath = [[appPath stringByAppendingPathComponent:@"_CodeSignature"]  
+                         stringByAppendingPathComponent:@"CodeResources"];  
+    return sigPath;  
+}  
+
++ (NSString *)binaryPath  
+{  
+    NSString *excutableName = [[NSBundle mainBundle] infoDictionary][@"CFBundleExecutable"];  
+    NSString *tmpPath = [[WQPathUtilities documentsDirectory] stringByDeletingLastPathComponent];  
+    NSString *appPath = [[tmpPath stringByAppendingPathComponent:excutableName]  
+                         stringByAppendingPathExtension:@"app"];  
+    NSString *binaryPath = [appPath stringByAppendingPathComponent:excutableName];  
+    return binaryPath;  
+}  
+
+@end  
+</code></pre>
+
+<p>md5方法：</p>
+
+<pre><code>#import "CommonCrypto/CommonDigest.h"  
+
++(NSString *)md5WithString:(NSString *)string  
+{  
+    const charchar *cStr = [string UTF8String];  
+    unsigned char result[CC_MD5_DIGEST_LENGTH];  
+    CC_MD5(cStr, strlen(cStr), result);  
+
+    return [[NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",  
+             result[0], result[1], result[2], result[3],  
+             result[4], result[5], result[6], result[7],  
+             result[8], result[9], result[10], result[11],  
+             result[12], result[13], result[14], result[15]  
+             ] lowercaseString];  
+}  
+</code></pre>
+
+<h4>static和被裁的符号表</h4>
+
+<p>原理：</p>
+
+<p>如果函数属性为static，那么编译时该函数符号就会被解析为local符号。在发布release程序时（xcode打包编译二进制）默认会strip裁掉这些函数符号，加大破解难度。</p>
+
+<p>局限：static函数，只在本文件可见。</p>
+
+<pre><code>static id static_createBtn()  
+{  
+    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectZero];  
+    [btn setFrame:CGRectMake(50, 100, 100, 100)];  
+    [btn setBackgroundColor:[UIColor blueColor]];  
+    btn.layer.cornerRadius = 7.0f;  
+    btn.layer.masksToBounds = YES;  
+    return btn;  
+} 
+</code></pre>
+
+<h4>方法名混淆</h4>
+
+<p>常规思路：</p>
+
+<ul>
+<li>花代码花指令，即随意往程序中加入迷惑人的代码指令</li>
+<li>易读字符替换</li>
+</ul>
+
+
+<p>念茜写了一个混淆工具，主要思路是把敏感方法名集中写在一个名叫func.list的文件中，逐一#define成随机字符，追加写入.h</p>
+
+<pre><code>#!/usr/bin/env bash  
+
+TABLENAME=symbols  
+SYMBOL_DB_FILE="symbols"  
+STRING_SYMBOL_FILE="func.list"  
+HEAD_FILE="$PROJECT_DIR/$PROJECT_NAME/codeObfuscation.h"  
+export LC_CTYPE=C  
+
+#维护数据库方便日后作排重  
+createTable()  
+{  
+    echo "create table $TABLENAME(src text, des text);" | sqlite3 $SYMBOL_DB_FILE  
+}  
+
+insertValue()  
+{  
+    echo "insert into $TABLENAME values('$1' ,'$2');" | sqlite3 $SYMBOL_DB_FILE  
+}  
+
+query()  
+{  
+    echo "select * from $TABLENAME where src='$1';" | sqlite3 $SYMBOL_DB_FILE  
+}  
+
+ramdomString()  
+{  
+    openssl rand -base64 64 | tr -cd 'a-zA-Z' |head -c 16  
+}  
+
+rm -f $SYMBOL_DB_FILE  
+rm -f $HEAD_FILE  
+createTable  
+
+touch $HEAD_FILE  
+echo '#ifndef Demo_codeObfuscation_h  
+#define Demo_codeObfuscation_h' &gt;&gt; $HEAD_FILE  
+echo "//confuse string at `date`" &gt;&gt; $HEAD_FILE  
+cat "$STRING_SYMBOL_FILE" | while read -ra line; do  
+    if [[ ! -z "$line" ]]; then  
+        ramdom=`ramdomString`  
+        echo $line $ramdom  
+        insertValue $line $ramdom  
+        echo "#define $line $ramdom" &gt;&gt; $HEAD_FILE  
+    fi  
+done  
+echo "#endif" &gt;&gt; $HEAD_FILE  
+
+
+sqlite3 $SYMBOL_DB_FILE .dump  
+</code></pre>
+
+<p><a href="http://blog.csdn.net/yxh265/article/details/38438959">这里</a>有人用c写了一个获取m中方法的程序。</p>
+
+<h4>敏感代码保护</h4>
+
+<p>Object-C代码容易被hook，暴露信息太多，为了安全，改用C来写敏感的业务逻辑吧。</p>
+
+<p>示例：</p>
+
+<pre><code>//XXUtil.h  
+#import &lt;Foundation/Foundation.h&gt;  
+
+typedef struct _util {  
+    BOOL (*isVerified)(void);  
+    BOOL (*isNeedSomething)(void);  
+    void (*resetPassword)(NSString *password);  
+}XXUtil_t ;  
+
+#define XXUtil ([_XXUtil sharedUtil])  
+
+@interface _XXUtil : NSObject  
+
++ (XXUtil_t *)sharedUtil;  
+@end  
+
+//XXUtil.m  
+#import "XXUtil.h"  
+
+static BOOL _isVerified(void)  
+{  
+    //bala bala ...  
+    return YES;  
+}  
+
+static BOOL _isNeedSomething(void)  
+{  
+    //bala bala ...  
+    return YES;  
+}  
+
+static void _resetPassword(NSString *password)  
+{  
+    //bala bala ...  
+}  
+
+static XXUtil_t * util = NULL;  
+@implementation _XXUtil  
+
++(XXUtil_t *)sharedUtil  
+{  
+    static dispatch_once_t onceToken;  
+    dispatch_once(&amp;onceToken, ^{  
+        util = malloc(sizeof(XXUtil_t));  
+        util-&gt;isVerified = _isVerified;  
+        util-&gt;isNeedSomething = _isNeedSomething;  
+        util-&gt;resetPassword = _resetPassword;  
+    });  
+    return util;  
+}  
+
++ (void)destroy  
+{  
+    util ? free(util): 0;  
+    util = NULL;  
+}  
+@end  
+</code></pre>
+
+<h4>判断设备是否越狱</h4>
+
+<p><a href="http://blog.csdn.net/sakulafly/article/details/21159257">直接看原文吧</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[NFC技术在M1卡中的运用学习]]></title>

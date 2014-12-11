@@ -1,0 +1,532 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>iOS安全攻防学习笔记 - Peter&#8217;s Blog</title>
+	<meta name="author" content="Peter">
+
+	
+	<meta name="description" content="博客、Peter">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Peter's Blog" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://codefunny.github.io/blog/2014/12/11/ios-safe/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<!--link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'-->
+	<script src="http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js"></script>
+	<!-- baidu zhanzhang -->
+<meta name="baidu-site-verification" content="gZTC7LLPAu" />
+
+  
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<!-- img src="http://www.gravatar.com/avatar//images/custom_images/160-peter.jpg?s=160" alt="Profile Picture" style="width: 160px;" / -->
+	<img src="/images/custom_images/160-peter.jpg" alt="Profile Picture" style="width: 160px;" />
+	
+</div>
+<h1><a href="/">Peter</a></h1>
+<p class="subtitle">数风流人物<br>还看今朝</p>
+
+<nav id="main-nav"><ul class="main">
+    <li><a href="/">首页</a></li>
+    <li><a href="/blog/archives">所有文章</a></li>
+    <li><a href="/about">关于我</a></li>
+</ul>
+
+
+<section class="aboutme">
+  <p>
+    博客、Peter
+  </p>
+</section>
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+			<a class="email" href="mailto:winchaozheng@gmail.com" title="Email">Email</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<!-- add weixin  -->
+欢迎关注我的微信公众账号<br>
+<div align=center><img width="100" height="100" src="/images/qrcode_for_gh_weixin_430.jpg"></div>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">iOS安全攻防学习笔记</h1>
+	<div class="entry-content" itemprop="articleBody"><p>前言</p>
+
+<p>在CSDN上发现<a href="http://blog.csdn.net/column/details/hackingios.html?&amp;page=2">程序媛念茜的iOS安全攻防专栏</a>系列文章，在程序猿这个男性居多的行业里见到一女中豪杰，真是巾帼不让须眉，十分佩服念茜，这里就记录一下学习的笔记吧。感谢分享！</p>
+
+<!-- more -->
+
+
+<h4>工具和命令</h4>
+
+<table>
+<thead>
+<tr>
+<th style="text-align:left;"> ps </th>
+<th style="text-align:left;"> 显示进程，cpu使用率，内存使用情况等 </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;"> sysctl </td>
+<td style="text-align:left;"> 检查设定Kernel配置 </td>
+</tr>
+<tr>
+<td style="text-align:left;">netstat</td>
+<td style="text-align:left;">显示网络连接，路由表，接口状态等</td>
+</tr>
+<tr>
+<td style="text-align:left;">route</td>
+<td style="text-align:left;">路由</td>
+</tr>
+<tr>
+<td style="text-align:left;">renice</td>
+<td style="text-align:left;">调整程序运行优先级</td>
+</tr>
+<tr>
+<td style="text-align:left;">ifconfig</td>
+<td style="text-align:left;">查看网络配置</td>
+</tr>
+<tr>
+<td style="text-align:left;">tcpdump</td>
+<td style="text-align:left;">截获分析网络数据包</td>
+</tr>
+<tr>
+<td style="text-align:left;">lsof</td>
+<td style="text-align:left;">列出当前系统打开的文件列表</td>
+</tr>
+<tr>
+<td style="text-align:left;">otool</td>
+<td style="text-align:left;">查看程序依赖的动态库信息，反编代码段。。。</td>
+</tr>
+<tr>
+<td style="text-align:left;">nm</td>
+<td style="text-align:left;">显示符号表</td>
+</tr>
+<tr>
+<td style="text-align:left;">ldid</td>
+<td style="text-align:left;">签名工具</td>
+</tr>
+</tbody>
+</table>
+
+
+<p><code>otool -L exe</code> : 显示可执行程序连接了哪些库<br>
+<code>otool -tV exe</code>: 反编译exe的<strong>TEXT</strong>段内容<br>
+<code>nm -g exe</code>: 显示程序符号表</p>
+
+<h4>阻止GDB依附</h4>
+
+<p>常规的办法是：</p>
+
+<pre><code>#import &lt;sys/ptrace.h&gt;  
+
+int main(int argc, charchar *argv[])  
+{  
+#ifndef DEBUG  
+    ptrace(PT_DENY_ATTACH,0,0,0);  
+#endif  
+    @autoreleasepool {  
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([WQMainPageAppDelegate class]));  
+    }  
+}  
+</code></pre>
+
+<p>但是iPhone真实环境没有sys/ptrace.h的，但是可以通过dlopen拿到它。</p>
+
+<p>dlopen：当path参数为0时，他会自动查找$LD_LIBRARY_PATH,$DYLD_LIBRARY_PATH,$DYLD_FALLBACK_LIBRARY_PATH和当前工作目录中的动态链接库。</p>
+
+<pre><code>#import &lt;dlfcn.h&gt;  
+#import &lt;sys/types.h&gt;  
+
+typedef int (*ptrace_ptr_t)(int _request, pid_t _pid, caddr_t _addr, int _data);  
+#if !defined(PT_DENY_ATTACH)  
+#define PT_DENY_ATTACH 31  
+#endif  // !defined(PT_DENY_ATTACH)  
+
+void disable_gdb() {  
+    void* handle = dlopen(0, RTLD_GLOBAL | RTLD_NOW);  
+    ptrace_ptr_t ptrace_ptr = dlsym(handle, "ptrace");  
+    ptrace_ptr(PT_DENY_ATTACH, 0, 0, 0);  
+    dlclose(handle);  
+}  
+
+int main(int argc, charchar *argv[])  
+{  
+#ifndef DEBUG  
+    disable_gdb();  
+#endif  
+    @autoreleasepool {  
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([WQMainPageAppDelegate class]));  
+    }  
+}
+</code></pre>
+
+<p><strong>上述方法经过校验可行，但是不知道放在正式版app中是否会被apple驳回。</strong></p>
+
+<h4>二进制和资源文件自检</h4>
+
+<p>hackers们破解app，一般动2个地方，一个是二进制，一个是资源文件。二进制都重新编译了，当然是盗版，但修改资源文件是不需要重新编译二进制文件。</p>
+
+<p>那么，我们有必要在敏感的请求报文中，增加正版应用的二进制和资源文件的标识，让服务器知道，此请求是否来自正版未经修改的app。在沙盒中，读到自己程序的二进制，也可读到资源文件签名文件，对其取md5值然后以某种组合算法得到一个标记字符串，然后发给服务器。</p>
+
+<p>下面是念茜封装的读取文件地址代码</p>
+
+<pre><code>@implementation WQPathUtilities  
+
++ (NSString *)directory:(NSSearchPathDirectory)dir  
+{  
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(dir, NSUserDomainMask, YES);  
+    NSString *dirStr = [paths objectAtIndex:0];  
+    return dirStr;  
+}  
+
++ (NSString *)documentsDirectory  
+{  
+    return [WQPathUtilities directory:NSDocumentDirectory];  
+}  
+
++ (NSString *)cachesDirectory  
+{  
+    return [WQPathUtilities directory:NSCachesDirectory];  
+}  
+
++ (NSString *)tmpDirectory  
+{  
+    return NSTemporaryDirectory();  
+}  
+
++ (NSString *)homeDirectory  
+{  
+    return NSHomeDirectory();  
+}  
+
++ (NSString *)codeResourcesPath  
+{  
+    NSString *excutableName = [[NSBundle mainBundle] infoDictionary][@"CFBundleExecutable"];  
+    NSString *tmpPath = [[WQPathUtilities documentsDirectory] stringByDeletingLastPathComponent];  
+    NSString *appPath = [[tmpPath stringByAppendingPathComponent:excutableName]  
+                         stringByAppendingPathExtension:@"app"];  
+    NSString *sigPath = [[appPath stringByAppendingPathComponent:@"_CodeSignature"]  
+                         stringByAppendingPathComponent:@"CodeResources"];  
+    return sigPath;  
+}  
+
++ (NSString *)binaryPath  
+{  
+    NSString *excutableName = [[NSBundle mainBundle] infoDictionary][@"CFBundleExecutable"];  
+    NSString *tmpPath = [[WQPathUtilities documentsDirectory] stringByDeletingLastPathComponent];  
+    NSString *appPath = [[tmpPath stringByAppendingPathComponent:excutableName]  
+                         stringByAppendingPathExtension:@"app"];  
+    NSString *binaryPath = [appPath stringByAppendingPathComponent:excutableName];  
+    return binaryPath;  
+}  
+
+@end  
+</code></pre>
+
+<p>md5方法：</p>
+
+<pre><code>#import "CommonCrypto/CommonDigest.h"  
+
++(NSString *)md5WithString:(NSString *)string  
+{  
+    const charchar *cStr = [string UTF8String];  
+    unsigned char result[CC_MD5_DIGEST_LENGTH];  
+    CC_MD5(cStr, strlen(cStr), result);  
+
+    return [[NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",  
+             result[0], result[1], result[2], result[3],  
+             result[4], result[5], result[6], result[7],  
+             result[8], result[9], result[10], result[11],  
+             result[12], result[13], result[14], result[15]  
+             ] lowercaseString];  
+}  
+</code></pre>
+
+<h4>static和被裁的符号表</h4>
+
+<p>原理：</p>
+
+<p>如果函数属性为static，那么编译时该函数符号就会被解析为local符号。在发布release程序时（xcode打包编译二进制）默认会strip裁掉这些函数符号，加大破解难度。</p>
+
+<p>局限：static函数，只在本文件可见。</p>
+
+<pre><code>static id static_createBtn()  
+{  
+    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectZero];  
+    [btn setFrame:CGRectMake(50, 100, 100, 100)];  
+    [btn setBackgroundColor:[UIColor blueColor]];  
+    btn.layer.cornerRadius = 7.0f;  
+    btn.layer.masksToBounds = YES;  
+    return btn;  
+} 
+</code></pre>
+
+<h4>方法名混淆</h4>
+
+<p>常规思路：</p>
+
+<ul>
+<li>花代码花指令，即随意往程序中加入迷惑人的代码指令</li>
+<li>易读字符替换</li>
+</ul>
+
+
+<p>念茜写了一个混淆工具，主要思路是把敏感方法名集中写在一个名叫func.list的文件中，逐一#define成随机字符，追加写入.h</p>
+
+<pre><code>#!/usr/bin/env bash  
+
+TABLENAME=symbols  
+SYMBOL_DB_FILE="symbols"  
+STRING_SYMBOL_FILE="func.list"  
+HEAD_FILE="$PROJECT_DIR/$PROJECT_NAME/codeObfuscation.h"  
+export LC_CTYPE=C  
+
+#维护数据库方便日后作排重  
+createTable()  
+{  
+    echo "create table $TABLENAME(src text, des text);" | sqlite3 $SYMBOL_DB_FILE  
+}  
+
+insertValue()  
+{  
+    echo "insert into $TABLENAME values('$1' ,'$2');" | sqlite3 $SYMBOL_DB_FILE  
+}  
+
+query()  
+{  
+    echo "select * from $TABLENAME where src='$1';" | sqlite3 $SYMBOL_DB_FILE  
+}  
+
+ramdomString()  
+{  
+    openssl rand -base64 64 | tr -cd 'a-zA-Z' |head -c 16  
+}  
+
+rm -f $SYMBOL_DB_FILE  
+rm -f $HEAD_FILE  
+createTable  
+
+touch $HEAD_FILE  
+echo '#ifndef Demo_codeObfuscation_h  
+#define Demo_codeObfuscation_h' &gt;&gt; $HEAD_FILE  
+echo "//confuse string at `date`" &gt;&gt; $HEAD_FILE  
+cat "$STRING_SYMBOL_FILE" | while read -ra line; do  
+    if [[ ! -z "$line" ]]; then  
+        ramdom=`ramdomString`  
+        echo $line $ramdom  
+        insertValue $line $ramdom  
+        echo "#define $line $ramdom" &gt;&gt; $HEAD_FILE  
+    fi  
+done  
+echo "#endif" &gt;&gt; $HEAD_FILE  
+
+
+sqlite3 $SYMBOL_DB_FILE .dump  
+</code></pre>
+
+<p><a href="http://blog.csdn.net/yxh265/article/details/38438959">这里</a>有人用c写了一个获取m中方法的程序。</p>
+
+<h4>敏感代码保护</h4>
+
+<p>Object-C代码容易被hook，暴露信息太多，为了安全，改用C来写敏感的业务逻辑吧。</p>
+
+<p>示例：</p>
+
+<pre><code>//XXUtil.h  
+#import &lt;Foundation/Foundation.h&gt;  
+
+typedef struct _util {  
+    BOOL (*isVerified)(void);  
+    BOOL (*isNeedSomething)(void);  
+    void (*resetPassword)(NSString *password);  
+}XXUtil_t ;  
+
+#define XXUtil ([_XXUtil sharedUtil])  
+
+@interface _XXUtil : NSObject  
+
++ (XXUtil_t *)sharedUtil;  
+@end  
+
+//XXUtil.m  
+#import "XXUtil.h"  
+
+static BOOL _isVerified(void)  
+{  
+    //bala bala ...  
+    return YES;  
+}  
+
+static BOOL _isNeedSomething(void)  
+{  
+    //bala bala ...  
+    return YES;  
+}  
+
+static void _resetPassword(NSString *password)  
+{  
+    //bala bala ...  
+}  
+
+static XXUtil_t * util = NULL;  
+@implementation _XXUtil  
+
++(XXUtil_t *)sharedUtil  
+{  
+    static dispatch_once_t onceToken;  
+    dispatch_once(&amp;onceToken, ^{  
+        util = malloc(sizeof(XXUtil_t));  
+        util-&gt;isVerified = _isVerified;  
+        util-&gt;isNeedSomething = _isNeedSomething;  
+        util-&gt;resetPassword = _resetPassword;  
+    });  
+    return util;  
+}  
+
++ (void)destroy  
+{  
+    util ? free(util): 0;  
+    util = NULL;  
+}  
+@end  
+</code></pre>
+
+<h4>判断设备是否越狱</h4>
+
+<p><a href="http://blog.csdn.net/sakulafly/article/details/21159257">直接看原文吧</a></p>
+</div>
+
+</article>
+	
+
+<DIV style="font-size:12px;BORDER-BOTTOM: #bbbbbb 1px solid; BORDER-LEFT: #bbbbbb 1px solid; BACKGROUND: #f6f6f6; BORDER-TOP: #bbbbbb 1px solid; BORDER-RIGHT: #bbbbbb 1px solid" class=peterright> 
+<DIV style="MARGIN-TOP: 10px; FLOAT: left; MARGIN-LEFT: 5px; MARGIN-RIGHT: 10px"> 
+	<script type="text/javascript">
+		document.write("<img src='/images/custom_images/100-peter.jpg' alt='Profile Picture' style='width:90px;max_width: 100px; height:90px;max_height:100px;' />");
+</script>
+</DIV> 
+<DIV style="LINE-HEIGHT: 200%; MARGIN-TOP: 10px; COLOR: #000000"> 
+作者： <A href="http://Peter.github.io/">Peter</A> <br> 
+出处： <A href="http://codefunny.github.io/">http://codefunny.github.io/</A> 
+<br>本文基于<br>
+<a target="_blank" title="Creative Commons Attribution 2.5 China Mainland License" href="http://creativecommons.org/licenses/by/2.5/cn/"> 
+署名 2.5 中国大陆</a>许可协议发布，欢迎转载，演绎或用于商业目的，但是必须保留本文的署名 <a href="http://codefunny.github.io">Peter</a>（包含链接）。
+ </DIV>
+</DIV> 
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372347702608570" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<br>
+<br>
+<br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>
+<!-- UY END -->
+
+	
+	
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!--script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=" -->
+</div>
+
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+Copyright &copy; 2014
+
+    Peter
+
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+		</div>
+	</div>
+	
+
+
+
+
+
+
+
+
+<!-- baidu tongji  -->
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F34d22b7d6d470c1d99721ec921e0c96d' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+</body>
+</html>
