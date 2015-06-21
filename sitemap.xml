@@ -57,27 +57,38 @@
   </url>
   <url>
     <loc>http://codefunny.github.io/blog/archives/</loc>
-    <lastmod>2014-12-12T12:28:34+08:00</lastmod>
+    <lastmod>2015-06-22T02:48:25+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://codefunny.github.io/</loc>
-    <lastmod>2014-12-12T12:28:34+08:00</lastmod>
+    <lastmod>2015-06-22T02:48:25+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>http://codefunny.github.io/app/</loc>
+    <lastmod>2015-06-22T02:48:25+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>http://codefunny.github.io/blog/categories/</loc>
-    <lastmod>2014-12-12T12:28:34+08:00</lastmod>
+    <lastmod>2015-06-22T02:48:25+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://codefunny.github.io/about/</loc>
-    <lastmod>2014-12-12T12:28:34+08:00</lastmod>
+    <lastmod>2015-06-22T02:48:25+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>http://codefunny.github.io/app/zhiyue/index.html</loc>
+    <lastmod>2015-06-22T02:37:40+08:00</lastmod>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>http://codefunny.github.io/class/apollo/brower.html</loc>
