@@ -11,7 +11,11 @@ layout: default
 </div>
 <nav id="pagenavi">
     {% if paginator.previous_page %}
+	{% if paginator.page == 2 %}
+	<a href="/index.html" class="prev">Prev</a>
+	{% else %}
         <a href="{{paginator.previous_page}}" class="prev">Prev</a>
+	{% endif %}
     {% endif %}
     {% if paginator.next_page %}
         <a href="{{paginator.next_page}}" class="next">Next</a>

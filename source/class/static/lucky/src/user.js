@@ -1,9 +1,12 @@
 define(function(require, exports, module) {
 
   var $ = require('jquery');
-
-  var CANVAS_HEIGHT = 500;
+/*
+  var CANVAS_HEIGHT = 900;
   var CANVAS_WIDTH = 900;
+  */
+  var CANVAS_HEIGHT = $(document).height();
+  var CANVAS_WIDTH = $(document).width();
 
   var BALL_WIDTH = 40;
   var BALL_HEIGHT = 40;

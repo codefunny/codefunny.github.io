@@ -33,7 +33,7 @@ module HighlightCode
     end
     highlighted_code
   end
-  def self.tableize_code (str, lang = '')
+  def self.tableize_code (str, lang = 'objc')
     table = '<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers">'
     code = ''
     str.lines.each_with_index do |line,index|
