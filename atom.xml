@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2015-06-22T02:48:25+08:00</updated>
+  <updated>2015-07-04T17:05:51+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -12,6 +12,94 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[【IOS】只有RSA模和指数，如何完成加密]]></title>
+    <link href="http://codefunny.github.io/blog/2015/07/04/ios-rsa/"/>
+    <updated>2015-07-04T17:02:23+08:00</updated>
+    <id>http://codefunny.github.io/blog/2015/07/04/ios-rsa</id>
+    <content type="html"><![CDATA[<blockquote><p>最近在项目中遇到RSA的加密解密问题，如果采用一般证书的方式也就没有这篇文章了，情况是这样的，RSA公钥存在服务器，需要联机获取，可以获取到RSA密钥的模值、有效期、指数、算法标识、索引等信息，这些信息是ASCII码格式，这些信息如何利用IOS的加密API进行RSA运算就成了一个问题。这篇文章就是记述探索问题答案的过程，希望对遇到同样问题的同行有所帮助。</p></blockquote>
+
+<!-- more -->
+
+
+<h4>获取的RSA模和指数</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>modulus: ADDC2B26BBA0E8BC8D532444656E367FD28924B5CB992728B87AB7DF09BA4043259AA8DF42D53D75CBF671DC617053BA5260CEEB42386431C3C3837C02AF5D8C665FB42F2F0949445133AEACE2DDE00CD8562D65978A6E057A3F18A63B0086E83A9A16A77C5F459ECCFD41D9E58ACF890B22E49428E9ADD21DD1A483E46AD3C1
+</span><span class='line'>exponent:
+</span><span class='line'>010001</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是ASCII格式的公钥，在网上查询了一下RSA公钥的格式，发现X.509 DER编码和X.509 PAM编码，其中DER编码是ASCII格式，PAM编码是Base64格式，且他们只放证书，不含私钥。根据模值，可以判断，我们采用的应该是DER编码。那么DER编码的格式，就要弄清楚一下了。</p>
+
+<h4>X.509 DER编码格式</h4>
+
+<p>网上有一篇文章<a href="http://m.blog.csdn.net/blog/lingruoshui/11473755">RSA公钥DER编码</a>根据这篇文章可以推断出我们的DER编码格式应该是这样的，</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>30818902818100ADDC2B26BBA0E8BC8D532444656E367FD28924B5CB992728B87AB7DF09BA4043259AA8DF42D53D75CBF671DC617053BA5260CEEB42386431C3C3837C02AF5D8C665FB42F2F0949445133AEACE2DDE00CD8562D65978A6E057A3F18A63B0086E83A9A16A77C5F459ECCFD41D9E58ACF890B22E49428E9ADD21DD1A483E46AD3C10203010001
+</span><span class='line'>解析一下可以分成以下几个部分（大家可以了解以下TLV结构）：
+</span><span class='line'>308189：30开始，81代表后面一个字节表示长度，89表示后面有137字节；
+</span><span class='line'>028181：02开始，81同上，81表示modulus长度129，前面补了00；
+</span><span class='line'>00ADDC2B26BBA0E8BC8D532444656E367FD28924B5CB992728B87AB7DF09BA4043259AA8DF42D53D75CBF671DC617053BA5260CEEB42386431C3C3837C02AF5D8C665FB42F2F0949445133AEACE2DDE00CD8562D65978A6E057A3F18A63B0086E83A9A16A77C5F459ECCFD41D9E58ACF890B22E49428E9ADD21DD1A483E46AD3C1：modulus
+</span><span class='line'>0203010001：02开始，03表示后面三个字节，exponent值（010001）。</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>RSA在IOS中的常见用法</h4>
+
+<p><a href="http://blog.iamzsx.me/show.html?id=155002">iOS下的RSA加密方法</a>这篇文章常见用法之一，使用公钥证书，利用系统方法最终获得<strong>SecKeyRef publicKey</strong>，但是我们现在遇到的问题就是没有证书，我尝试过利用上面组装的DER送给<strong>SecCertificateCreateWithData</strong>，但是结果是返回nil值，这说明，我们的格式还不是该方法的参数，那么该方法的参数是神马呢，我跟踪了一个公钥证书，打印NSData值，发现其编码格式如下（中间部分经过我的处理，方便大家观察）：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>308202e4 3082024d a0030201 02020900 b524e21a d8b61f68 300d0609 2a864886 f70d0101 05050030 818a310b 30090603 55040613 02434e31 11300f06 03550408 0c085368 616e6768 61693111 300f0603 5504070c 08536861 6e676861 69310e30 0c060355 040a0c05 42616979 69310e30 0c060355 040b0c05 42616979 69311030 0e060355 04030c07 596f726b 2e477531 23302106 092a8648 86f70d01 09011614 67797135 33313939 32304067 6d61696c 2e636f6d 301e170d 31313130 32363032 34353332 5a170d31 31313132 35303234 3533335a 30818a31 0b300906 03550406 1302434e 3111300f 06035504 080c0853 68616e67 68616931 11300f06 03550407 0c085368 616e6768 6169310e 300c0603 55040a0c 05426169 7969310e 300c0603 55040b0c 05426169 79693110 300e0603 5504030c 07596f72 6b2e4775 31233021 06092a86 4886f70d 01090116 14677971 35333139 39323040 676d6169 6c2e636f 6d30819f
+</span><span class='line'>    300d0609 2a864886 f70d0101 010500
+</span><span class='line'>    03 818d
+</span><span class='line'>    0030 81890281 81
+</span><span class='line'>    00addc 2b26bba0 e8bc8d53 2444656e 367fd289 24b5cb99 2728b87a b7df09ba 4043259a a8df42d5 3d75cbf6 71dc6170 53ba5260 ceeb4238 6431c3c3 837c02af 5d8c665f b42f2f09 49445133 aeace2dd e00cd856 2d65978a 6e057a3f 18a63b00 86e83a9a 16a77c5f 459eccfd 41d9e58a cf890b22 e49428e9 add21dd1 a483e46a d3c1
+</span><span class='line'>    0203 010001
+</span><span class='line'>    a3 50304e30 1d060355 1d0e0416 04148888 b8b699e8 44822fcc c1164e95 dd662e58 65ed301f 0603551d 23041830 16801488 88b8b699 e844822f ccc1164e 95dd662e 5865ed30 0c060355 1d130405 30030101 ff300d06 092a8648 86f70d01 01050500 03818100 1d0652cb 2ca15103 b3dbd0c6 4d03ccda fca41d22 75f23e15 aae5e3a3 999d6e59 c0fbb776 f4a6850f b245d87b 05ae7824 2caf472d 0971607e 7d980ee1 0a2b3516 d555b052 b8f83ac0 bccfb9ab 32f53a66 69a61a2c b2887a76 ba67ad1a 15647085 acddebe8 48b0a4cc 4c4c5a5a 39dd6e51 1b840b23 76983a40 cb0ababb 3dfa2ceb </span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以发现中间那部分就是我们前面的DER编码格式，但是前后那一大段是神马东西呢，这又困扰了我，这个问题先放一放。接下来，要介绍一个最关键的，实际上得益于该作者的成果，我才解决了这个问题，同时也大概知道了上面那一堆大概是神马东东。</p>
+
+<h4>找到通往罗马的道路</h4>
+
+<p>在互联网上搜寻了，找到一篇文章<a href="http://www.ideawu.com/blog/post/132.html">iOS Objective-C RSA encrypt with only public key and descrypt with PHP</a>,这篇文章我看过几次，我一开始认为，里面的公钥就是我上面产生公钥的Base64编码格式，所以，我进行了Base64编码，同时参照其模式，添加了&mdash;&ndash;BEGIN PUBLIC KEY&mdash;&ndash;和&mdash;&ndash;END PUBLIC KEY&mdash;&ndash;，但是依然返回nil，于是我将下面的字符进行Base64解码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEChqe80lJLTTkJD3X3Lyd7Fj+
+</span><span class='line'>zuOhDZkjuLNPog3YR20e5JcrdqI9IFzNbACY/GQVhbnbvBqYgyql8DfPCGXpn0+X
+</span><span class='line'>NSxELIUw9Vh32QuhGNr3/TBpechrVeVpFPLwyaYNEk1CawgHCeQqf5uaqiaoBDOT
+</span><span class='line'>qeox88Lc1ld7MsfggQIDAQAB</span></code></pre></td></tr></table></div></figure>
+
+
+<p>得到的数据和DER很像，但是其前面多了一些数据，查看其github上的源码才知道前面还有ASN.1 public key header和PKCS #1 rsaEncryption szOID_RSA_RSA，这个部分解释了上面一长串数据的含义。一开始我忽略了作者这样做的意图，后来我跟踪了从证书中获取公钥，打印了一下SecKeyRef的值，得到下面的结果：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>&lt;SecKeyRef algorithm id: 1, key type: RSAPublicKey, version: 3, block size: 1024 bits, exponent: {hex: 10001, decimal: 65537}, modulus: ADDC2B26BBA0E8BC8D532444656E367FD28924B5CB992728B87AB7DF09BA4043259AA8DF42D53D75CBF671DC617053BA5260CEEB42386431C3C3837C02AF5D8C665FB42F2F0949445133AEACE2DDE00CD8562D65978A6E057A3F18A63B0086E83A9A16A77C5F459ECCFD41D9E58ACF890B22E49428E9ADD21DD1A483E46AD3C1, addr: 0x17c85800&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这一下子让我想到能不能自己create一个SecKeyRef，因为它的参数我都可以获取，有了这个想法，又经历了一番曲折，最终在阅读ideawu的源码时得到了答案。<a href="https://github.com/codefunny/IOS-RSA/tree/master">源码看这里</a>。剩下的就只有看代码了。</p>
+
+<p>有看到有网友在网上发帖说尝试了很多方式，在IOS上没办法解决这个问题，看到这个我几乎要放弃了，但是最终还是幸运的解决了这个问题，有时候多一次回眸，可能结局就不一样，我们不缺少答案，只是要耐心的寻找。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS安全攻防学习笔记]]></title>
