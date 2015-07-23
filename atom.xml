@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2015-07-04T17:05:51+08:00</updated>
+  <updated>2015-07-23T12:25:24+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -12,6 +12,32 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[【IOS】Reveal利器之使用]]></title>
+    <link href="http://codefunny.github.io/blog/2015/07/23/ios-reveal-apply/"/>
+    <updated>2015-07-23T12:00:01+08:00</updated>
+    <id>http://codefunny.github.io/blog/2015/07/23/ios-reveal-apply</id>
+    <content type="html"><![CDATA[<p>网上有很多教程，我结合自己的经验，总结了一个方便地使用方法，在下面描述我的使用流程。</p>
+
+<!-- more -->
+
+
+<p>1.获得Reveal的framework，在Reveal中拿到Reveal.framework拷贝到一个目录，本地调试UI都引用这个目录的framework，不用copy到具体的工程中；</p>
+
+<p>2.在工程中新建一个Tagets，命名位RevealTest区分一下，然后在Build Setting中的Other Linker Flags项添加-ObjC -framework Reveal两项；</p>
+
+<p>3.别忘了在Linked Frameworks and Libraries中添加Reveal.framework进来。</p>
+
+<p>4.接下来就是启动Reveal和工程了，注意要编译的是RevealTest目标，这样就不用担心对生产版本造成影响了。</p>
+
+<p>附：比较方便的办法是copy一下TARGETS，然后添加上面的设置，不过copy一份targets发现identifier后面加了一个copy字样，可能会有一些警告之类的信息，可以到Build Setting中修改Product Name，去掉后面的copy字符即可。</p>
+
+<p>展示一个我的项目的UI截图，</p>
+
+<p><img src="http://codefunny.github.io/images/custom_images/zhiyue-reveal.jpg" alt="image" /></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[【IOS】只有RSA模和指数，如何完成加密]]></title>
