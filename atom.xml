@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2015-07-23T12:25:24+08:00</updated>
+  <updated>2015-08-10T11:49:41+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -12,6 +12,268 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[【iOS】HTTPS的使用学习]]></title>
+    <link href="http://codefunny.github.io/blog/2015/08/10/ios-https/"/>
+    <updated>2015-08-10T11:46:31+08:00</updated>
+    <id>http://codefunny.github.io/blog/2015/08/10/ios-https</id>
+    <content type="html"><![CDATA[<p>使用HTTPS最主要的考虑就是数据的安全性。对于HTTPS如何确保数据安全，依靠的就是SSL/TSL层的加密机制。HTTPS也就是在原来的HTTP层的基础上增加了一个安全层。</p>
+
+<p>我们需要了解的是HTTPS在建立安全连接时采取四次握手机制,会话密钥的产生。使用会话密钥主要是因为建立安全机制的密钥算法是非对称算法(一般是RSA)，计算比较耗时，而会话密钥使用的是对称密钥，可以提高会话的效率。</p>
+
+<!-- more -->
+
+
+<ol>
+<li>客户端向服务器端发起连接请求，上送信息有：支持协议版本、随机数1、加密方法、支持压缩算法；</li>
+<li>服务器回应，下发信息有：确认协议版本、随机数2、确认加密方法、服务器公钥证书；</li>
+<li>客户端再次上送信息：随机数3(采用公钥加密)、编码改变通知、客户端握手结束通知；</li>
+<li>服务器采用随机数1、随机数2和随机数3组成会话密钥，并回应：编码改变通知、服务器握手结束通知。</li>
+</ol>
+
+
+<p>以上四次握手中，完成了几件事情，第一，证书下发；第二，会话密钥；第三，确认双方参数(双方协议版本、加密方法等)。其中随机数1和随机数2是明文，随机数3是密文，之所以采用三个随机数来确定会话密钥，主要是三组随机数组成的随机数，确保了随机数的随机性，从而保证每次生成的会话密钥的安全性。</p>
+
+<p>在默认情况下，iOS要求连接的HTTPS站点必须为CA签名过得合法证书。AFNetworking基于iOS的HTTP网络通讯库，自然在证书方面要求和系统是一致，也需要合法的站点证书。所以探讨HTTPS在iOS开发中的使用，我们主要考虑两个问题，一个是合法证书，一个是自建证书。</p>
+
+<p>先来了解一下系统API的验证流程，HTTPS的相关API在Security.Framework中，如下：</p>
+
+<ol>
+<li>获取需要验证的信任对象(Trust Object)，在NSURLConnection来说，是从delegate方法<strong>-connection:willSendRequestForAuthenticationChallenge:</strong>回调回来的参数challenge中获取(<strong>[challenge.protectionSpace serverTrust]</strong>);</li>
+<li>采用系统默认方式验证Trust Object,SecTrustEvaluate会根据Trust Object的验证策略，一级一级往上，验证证书上每一级数字签名的有效性，从而评估证书的有效性；</li>
+<li>通过上一步，一般安全要求下，直接验证通过，下一步使用Trust Object生成一份凭证(<strong>[NSURLCredential credentialForTrust:serverTrust]</strong>)，传入challenge的sender中(<strong>[challenge.sender useCredential:cred forAuthenticationChallenge:challenge]</strong>)处理，建立连接；</li>
+<li>如果有更强的安全要求，还可以继续对Trust Object进行更严格验证，常用方式为在本地导入证书，验证Trust Object与导入证书是否匹配；</li>
+<li>如果验证失败，取消此次Challenge-Response Authentication验证流程，拒绝连接请求。</li>
+</ol>
+
+
+<p>如果是自建证书，那么会跳过第二步，因为自建证书的根CA数字签名不在系统的信任列表中。</p>
+
+<p>上代码</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// Now start the connection</span>
+</span><span class='line'><span class="bp">NSURL</span> <span class="o">*</span> <span class="n">httpsURL</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURL</span> <span class="nl">URLWithString</span><span class="p">:</span><span class="s">@&quot;https://www.google.com&quot;</span><span class="p">];</span>
+</span><span class='line'><span class="nb">self</span><span class="p">.</span><span class="n">connection</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURLConnection</span> <span class="nl">connectionWithRequest</span><span class="p">:[</span><span class="bp">NSURLRequest</span> <span class="nl">requestWithURL</span><span class="p">:</span><span class="n">httpsURL</span><span class="p">]</span> <span class="nl">delegate</span><span class="p">:</span><span class="nb">self</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//回调</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">connection:</span><span class="p">(</span><span class="bp">NSURLConnection</span> <span class="o">*</span><span class="p">)</span><span class="nv">connection</span> <span class="nf">willSendRequestForAuthenticationChallenge:</span><span class="p">(</span><span class="bp">NSURLAuthenticationChallenge</span> <span class="o">*</span><span class="p">)</span><span class="nv">challenge</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//1)获取trust object</span>
+</span><span class='line'>    <span class="n">SecTrustRef</span> <span class="n">trust</span> <span class="o">=</span> <span class="n">challenge</span><span class="p">.</span><span class="n">protectionSpace</span><span class="p">.</span><span class="n">serverTrust</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">SecTrustResultType</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="c1">//2)SecTrustEvaluate对trust进行验证</span>
+</span><span class='line'>    <span class="n">OSStatus</span> <span class="n">status</span> <span class="o">=</span> <span class="n">SecTrustEvaluate</span><span class="p">(</span><span class="n">trust</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">result</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">errSecSuccess</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>        <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="n">kSecTrustResultProceed</span> <span class="o">||</span>
+</span><span class='line'>        <span class="n">result</span> <span class="o">==</span> <span class="n">kSecTrustResultUnspecified</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="c1">//3)验证成功，生成NSURLCredential凭证cred，告知challenge的sender使用这个凭证来继续连接</span>
+</span><span class='line'>        <span class="bp">NSURLCredential</span> <span class="o">*</span><span class="n">cred</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURLCredential</span> <span class="nl">credentialForTrust</span><span class="p">:</span><span class="n">trust</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">challenge</span><span class="p">.</span><span class="n">sender</span> <span class="nl">useCredential</span><span class="p">:</span><span class="n">cred</span> <span class="nl">forAuthenticationChallenge</span><span class="p">:</span><span class="n">challenge</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">//5)验证失败，取消这次验证流程</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">challenge</span><span class="p">.</span><span class="n">sender</span> <span class="nl">cancelAuthenticationChallenge</span><span class="p">:</span><span class="n">challenge</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于自建证书我们需要先在本地导入证书，设置成需要验证的Anchor Certificate，再来验证。如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">//先导入证书</span>
+</span><span class='line'><span class="bp">NSString</span> <span class="o">*</span> <span class="n">cerPath</span> <span class="o">=</span> <span class="p">...;</span> <span class="c1">//证书的路径</span>
+</span><span class='line'><span class="bp">NSData</span> <span class="o">*</span> <span class="n">cerData</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSData</span> <span class="nl">dataWithContentsOfFile</span><span class="p">:</span><span class="n">cerPath</span><span class="p">];</span>
+</span><span class='line'><span class="n">SecCertificateRef</span> <span class="n">certificate</span> <span class="o">=</span> <span class="n">SecCertificateCreateWithData</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="k">__bridge</span> <span class="n">CFDataRef</span><span class="p">)(</span><span class="n">cerData</span><span class="p">));</span>
+</span><span class='line'><span class="nb">self</span><span class="p">.</span><span class="n">trustedCertificates</span> <span class="o">=</span> <span class="l">@[</span><span class="n">CFBridgingRelease</span><span class="p">(</span><span class="n">certificate</span><span class="p">)</span><span class="l">]</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//回调</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">connection:</span><span class="p">(</span><span class="bp">NSURLConnection</span> <span class="o">*</span><span class="p">)</span><span class="nv">connection</span> <span class="nf">willSendRequestForAuthenticationChallenge:</span><span class="p">(</span><span class="bp">NSURLAuthenticationChallenge</span> <span class="o">*</span><span class="p">)</span><span class="nv">challenge</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//1)获取trust object</span>
+</span><span class='line'>    <span class="n">SecTrustRef</span> <span class="n">trust</span> <span class="o">=</span> <span class="n">challenge</span><span class="p">.</span><span class="n">protectionSpace</span><span class="p">.</span><span class="n">serverTrust</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">SecTrustResultType</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//注意：这里将之前导入的证书设置成下面验证的Trust Object的anchor certificate</span>
+</span><span class='line'>    <span class="n">SecTrustSetAnchorCertificates</span><span class="p">(</span><span class="n">trust</span><span class="p">,</span> <span class="p">(</span><span class="k">__bridge</span> <span class="n">CFArrayRef</span><span class="p">)</span><span class="nb">self</span><span class="p">.</span><span class="n">trustedCertificates</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//2)SecTrustEvaluate会查找前面SecTrustSetAnchorCertificates设置的证书或者系统默认提供的证书，对trust进行验证</span>
+</span><span class='line'>    <span class="n">OSStatus</span> <span class="n">status</span> <span class="o">=</span> <span class="n">SecTrustEvaluate</span><span class="p">(</span><span class="n">trust</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">result</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">errSecSuccess</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>        <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="n">kSecTrustResultProceed</span> <span class="o">||</span>
+</span><span class='line'>        <span class="n">result</span> <span class="o">==</span> <span class="n">kSecTrustResultUnspecified</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">//3)验证成功，生成NSURLCredential凭证cred，告知challenge的sender使用这个凭证来继续连接</span>
+</span><span class='line'>        <span class="bp">NSURLCredential</span> <span class="o">*</span><span class="n">cred</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURLCredential</span> <span class="nl">credentialForTrust</span><span class="p">:</span><span class="n">trust</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">challenge</span><span class="p">.</span><span class="n">sender</span> <span class="nl">useCredential</span><span class="p">:</span><span class="n">cred</span> <span class="nl">forAuthenticationChallenge</span><span class="p">:</span><span class="n">challenge</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">//5)验证失败，取消这次验证流程</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">challenge</span><span class="p">.</span><span class="n">sender</span> <span class="nl">cancelAuthenticationChallenge</span><span class="p">:</span><span class="n">challenge</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一般我们很少直接使用原生API，而是使用AFNetworking封装好的接口来完成以上繁琐的过程，目前AFNetworking也已经更新到2.x版本了。</p>
+
+<p>一般我们只需要如下代码就可使接口支持HTTPS：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">AFSecurityPolicy</span> <span class="o">*</span><span class="n">securityPolicy</span> <span class="o">=</span> <span class="p">[</span><span class="n">AFSecurityPolicy</span> <span class="n">defaultPolicy</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">securityPolicy</span><span class="p">.</span><span class="n">allowInvalidCertificates</span> <span class="o">=</span> <span class="nb">YES</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于自建证书，AFNetworking2也是支持的，需要将pem格式的证书转成cer格式的，可以在mac下使用如下命令行：<strong>openssl x509 -in &lt;你的服务器证书>.pem -outform der -out server.cer</strong>将该证书引入到ap的bundle目录里，AFNetworking会自动扫描boundle中的.cer文件。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">AFSecurityPolicy</span> <span class="o">*</span><span class="n">securityPolicy</span> <span class="o">=</span> <span class="p">[</span><span class="n">AFSecurityPolicy</span> <span class="n">AFSSLPinningModeCertificate</span><span class="p">];</span>
+</span><span class='line'><span class="err">或者</span>
+</span><span class='line'><span class="n">AFSecurityPolicy</span> <span class="o">*</span><span class="n">securityPolicy</span> <span class="o">=</span> <span class="p">[</span><span class="n">AFSecurityPolicy</span> <span class="n">AFSSLPinningModePublicKey</span><span class="p">];</span>
+</span><span class='line'><span class="n">securityPolicy</span><span class="p">.</span><span class="n">allowInvalidCertificates</span> <span class="o">=</span> <span class="nb">YES</span><span class="p">;</span> <span class="c1">//还是必须设成YES</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面只列了一个参数，我想下面技术最好都要知道：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">//allowInvalidCertificates 是否允许无效证书（也就是自建的证书），默认为NO</span>
+</span><span class='line'><span class="c1">//如果是需要验证自建证书，需要设置为YES</span>
+</span><span class='line'><span class="n">securityPolicy</span><span class="p">.</span><span class="n">allowInvalidCertificates</span> <span class="o">=</span> <span class="nb">YES</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//validatesDomainName 是否需要验证域名，默认为YES；</span>
+</span><span class='line'><span class="c1">//假如证书的域名与你请求的域名不一致，需把该项设置为NO</span>
+</span><span class='line'><span class="c1">//主要用于这种情况：客户端请求的是子域名，而证书上的是另外一个域名。因为SSL证书上的域名是独立的，假如证书上注册的域名是www.google.com，那么mail.google.com是无法验证通过的；当然，有钱可以注册通配符的域名*.google.com，但这个还是比较贵的。</span>
+</span><span class='line'><span class="n">securityPolicy</span><span class="p">.</span><span class="n">validatesDomainName</span> <span class="o">=</span> <span class="nb">NO</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//validatesCertificateChain 是否验证整个证书链，默认为YES</span>
+</span><span class='line'><span class="c1">//设置为YES，会将服务器返回的Trust Object上的证书链与本地导入的证书进行对比，这就意味着，假如你的证书链是这样的：</span>
+</span><span class='line'><span class="c1">//GeoTrust Global CA </span>
+</span><span class='line'><span class="c1">//    Google Internet Authority G2</span>
+</span><span class='line'><span class="c1">//        *.google.com</span>
+</span><span class='line'><span class="c1">//那么，除了导入*.google.com之外，还需要导入证书链上所有的CA证书（GeoTrust Global CA, Google Internet Authority G2）；</span>
+</span><span class='line'><span class="c1">//如是自建证书的时候，可以设置为YES，增强安全性；假如是信任的CA所签发的证书，则建议关闭该验证；</span>
+</span><span class='line'><span class="n">securityPolicy</span><span class="p">.</span><span class="n">validatesCertificateChain</span> <span class="o">=</span> <span class="nb">NO</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外需要知道的是，验证站点证书时通过域名的，如果服务器站点没有绑定域名，仅靠IP地址，上面的方法是不行的，解决的办法就是修改AFNetworking2的代码，在AFSecurityPolicy.m文件中，修改：<strong>- (BOOL)evaluateServerTrust:(SecTrustRef)serverTrust
+                  forDomain:(NSString *)domain</strong>方法，将里面的部分校验代码注释掉：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">//            SecTrustSetAnchorCertificates(serverTrust, (__bridge CFArrayRef)pinnedCertificates);</span>
+</span><span class='line'><span class="c1">//</span>
+</span><span class='line'><span class="c1">//            if (!AFServerTrustIsValid(serverTrust)) {</span>
+</span><span class='line'><span class="c1">//                return NO;</span>
+</span><span class='line'><span class="c1">//            }</span>
+</span><span class='line'><span class="c1">//</span>
+</span><span class='line'><span class="c1">//            if (!self.validatesCertificateChain) {</span>
+</span><span class='line'><span class="c1">//                return YES;</span>
+</span><span class='line'><span class="c1">//            }</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有了上面的了解，我们就可以去实践一下HTTPS的开发了。Enjoy it！</p>
+
+<p>学习来源：</p>
+
+<ol>
+<li><a href="http://my.oschina.net/non6/blog/290175">iOS实用技巧 - AFNetworking2安全的使用自签证书访问HTTPS</a></li>
+<li><a href="http://oncenote.com/2014/10/21/Security-1-HTTPS/">iOS安全系列之一：HTTPS</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2014/02/ssl_tls.html">SSL/TLS协议运行机制的概述</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2014/09/illustration-ssl.html">图解SSL/TLS协议</a></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[【IOS】Reveal利器之使用]]></title>
