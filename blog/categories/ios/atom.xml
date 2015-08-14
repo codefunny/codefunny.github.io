@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ios | Peter's Blog]]></title>
   <link href="http://codefunny.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2015-08-10T11:49:41+08:00</updated>
+  <updated>2015-08-14T15:01:39+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -12,6 +12,93 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[开源Objective-C语言封装的iso8583协议实现]]></title>
+    <link href="http://codefunny.github.io/blog/2015/08/14/objc-pz8583/"/>
+    <updated>2015-08-14T14:50:38+08:00</updated>
+    <id>http://codefunny.github.io/blog/2015/08/14/objc-pz8583</id>
+    <content type="html"><![CDATA[<p><img src="/images/custom_images/pz8583.jpg" alt="image" /></p>
+
+<!--more-->
+
+
+<p>这几年接触了蛮多的8583协议，有银联标准版，到各大银行，有些第三方收单平台，大家都在使用iso8583报文协议，但是各个机构制定的协议又都各具特色，不尽相同。不过以我的经验，差别最大的还是各机构在处理密钥方面差别比较大，银联的自不必说，各成员机构也在密钥体系，加密算法等方面稍有差异，不过总得说来是大同小异。</p>
+
+<p>我前后使用C语言、PHP语言、Python语言、C++语言实现过银联标准版的POS终端协议规范，其中PHP和Python版是计划开发作为模拟测试用的，后来进入互联网支付行业，开始iOS的开发，采用的协议也就改为HTTP的方式了，直接的socket使用的就比较少了。恰好，最近帮助朋友开发一个项目，在这个项目中，我又开始接触到了久违的8583协议，于是筹划自己实现一套。</p>
+
+<p>在我筹划过程中，发现已经有一位开发者采用C语言已经实现了这套协议，而且还开源了，在阅读了其源码之后，我深感自己再实现一遍，也不会有他那么完善了，所以我打算采用OC封装他的实现，这样大大缩短了我的开发时间，因为是基于开源的代码，所以我也计划把我封装的代码开源了。一来感谢前人的开源，二来网上这方面的资源也比较少，希望可以帮助其他的同仁，共同进步。</p>
+
+<p>以上就是开源的缘起了，当然开源中去掉了非行业通用做法的部分接口，加之各机构协议上的细小差异，所以你需要作下改造才行。不过基础的8583打包，解包，DES，3DES，PIN的加密(带PAN信息)，MAC的计算(非银联版)。</p>
+
+<p>包括一些字节转换的方法，TLV格式的打包解包也是采用网上的开源代码。最后简单地介绍一下这个开源项目吧，如果需要了解实现细节，我觉得代码胜过一切。</p>
+
+<p>ObjC-PZ8583是基于BerTlv和Oscar-ISO8583的基础上进行的iOS封装，底层8583的打包和拆包使用了C语言的Oscar-ISO8583版本，为了适应开发需求，进行了Objective-C的封装，使得使用起来更方便一些。</p>
+
+<p>附件一段签到的代码实现吧,项目源码地址:<a href="https://github.com/codefunny/ObjC-PZ8583">ObjC-PZ8583</a>。Enjoy it！</p>
+
+<pre><code>- (void)mposGetWorkKeyFromServerWithBlock:(void(^)(NSString *text))display {
+    display(@"----------------签到-------------");
+//    NSString *lmk = @"a2dff4e59289a82fc740f4f4e5d997e6";
+    NSString *lmk = self.masterKey;
+    BOOL ret =[self.sockMgr startStop];
+    if (ret ) {
+        PZSignInRequest *request = [PZSignInRequest new];
+        [request.posFields setTranTtc:self.transTtc];
+        [request.posFields setTerminalId:self.terminalId];
+        [request.posFields setMerchantId:self.merchantId];
+        PZPrivateField60 *field60 = [PZPrivateField60 new];
+        field60.msgType = kSignInField60MsgType;
+        field60.batchNumber = self.batchNumber;
+        field60.networkCode = kSignInField60Network;
+        [request.posFields setPrivate60:[field60 encode]];
+        [request setOprNumber:@"01 "];
+
+        NSData *data = [request encode];
+        NSLog(@"send:%@",data);
+
+        display(request.posFields.description);
+
+        __block NSData *recvData = nil;
+        [self.sockMgr sendDataToServer:data finishCallBack:^(NSData *pospData,NSError *error){
+            if (!error) {
+                recvData = [pospData subdataWithRange:NSMakeRange(2, pospData.length -2)];
+
+                PZSignInResponse  *signResp = [PZSignInResponse new];
+                [signResp decode:recvData];
+
+                display(signResp.posFields.description);
+
+                if ([signResp.respCode isEqualToString:kResponseCodeSuccess00]) {
+                    NSLog(@"%@",[signResp.private62 description]);
+                    PZPrivateField62    *field62 = signResp.private62;
+                    NSString *pinKey = [NSString decrypt3Des:field62.pinKey withKey:lmk];
+                    NSString *macKey = [NSString decrypt3Des:field62.macKey withKey:lmk];
+                    NSString *trkKey = [NSString decrypt3Des:field62.trkKey withKey:lmk];
+
+                    NSString    *pinCheck = [NSString encrypt3Des:@"0000000000000000" withKey:pinKey];
+                    NSString    *macCheck = [NSString encrypt3Des:@"0000000000000000" withKey:macKey];
+                    NSString    *trkCheck = [NSString encrypt3Des:@"0000000000000000" withKey:trkKey];
+
+                    NSLog(@"pinkey:%@,check:%@;macKey:%@,check:%@;trkKey:%@,check:%@",pinKey,pinCheck,macKey,macCheck,trkKey,trkCheck);
+                    NSString    *log = [NSString stringWithFormat:@"%@\npinkey:%@,check:%@;macKey:%@,check:%@;trkKey:%@,check:%@",[signResp.private62 description],pinKey,pinCheck,macKey,macCheck,trkKey,trkCheck];
+                    display(log);
+
+                    self.pinKey = pinKey;
+                    self.macKey = macKey;
+                    self.trkKey = trkKey;
+
+                } else {
+                    NSLog(@"response:%@",signResp.respCode);
+                }
+            }
+            [self.sockMgr didDisconnected];
+        }];
+    }
+}
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[【iOS】HTTPS的使用学习]]></title>
