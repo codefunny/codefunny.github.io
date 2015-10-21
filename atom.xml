@@ -4,7 +4,7 @@
   <title><![CDATA[Peter's Blog]]></title>
   <link href="http://codefunny.github.io/atom.xml" rel="self"/>
   <link href="http://codefunny.github.io/"/>
-  <updated>2015-08-14T15:01:39+08:00</updated>
+  <updated>2015-10-21T23:31:35+08:00</updated>
   <id>http://codefunny.github.io/</id>
   <author>
     <name><![CDATA[Peter]]></name>
@@ -12,6 +12,37 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[iOS]和ViewController切换有关的一个问题]]></title>
+    <link href="http://codefunny.github.io/blog/2015/10/21/ios-navigationcontroller-push/"/>
+    <updated>2015-10-21T23:29:08+08:00</updated>
+    <id>http://codefunny.github.io/blog/2015/10/21/ios-navigationcontroller-push</id>
+    <content type="html"><![CDATA[<p>这个星期在书上看到一个问题，说A&ndash;>push B,B&ndash;>push C,但是我希望C直接返回到A，对这个问题，大致有几个思路吧：</p>
+
+<!--more-->
+
+
+<ol>
+<li>自定义navigationbar的返回事件，然后利用@selector(popToViewController:animation:)来调到指定ViewController；</li>
+<li>在popViewControllerAnimated:的时候，我们执行两次，这样以期达到跳过ViewController的目的；</li>
+<li>重写UINavigationController的push和pop方法。</li>
+</ol>
+
+
+<p>以上思路也都没有问题，但是在众多的思路中，应该有一个既解决问题，又让人觉得非常简单地好办法的。要找到这样的办法，当然就得去实验一下了。第1个思路可以解决问题，但是需要在C对象出现A对象的影子。第2个思路执行时会出现问题，我在Xcode7上运行产生一个警告，这个还有瑕疵。第3个就需要好好考虑一下了，我的一个办法是自定义一个数组，push就增加，pop就减少，单独提供一个removeObject的接口，在pop里面改用<code>popToViewController:animation:</code>，这个就是一个重思路，就是简单问题复杂化。</p>
+
+<p>应该有简单地解决思路，是的，确实有一个简单地解决办法，就是在B push C时，先把B出栈，然后让C入栈，我们唯一需要考虑就是页面的平滑过渡。好在SDK里面的API都有支持，下面的代码就是主要的核心过程。可能有人尝试过优化一下第一句，直接用self.navigationController来pop和push乐，至于什么结果你自己去尝试就知道了，总之，要想一想出栈之后，这个self和navigationController之间的关系还存在吗？想通了这个，也就明白了这个简单地思路了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>UINavigationController *navController = self.navigationController;
+</span><span class='line'>[navController popViewControllerAnimated:NO];
+</span><span class='line'>[navController pushViewController:[[TestViewController alloc] init ] animated:YES];</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[开源Objective-C语言封装的iso8583协议实现]]></title>
