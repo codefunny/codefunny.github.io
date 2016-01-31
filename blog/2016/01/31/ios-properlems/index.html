@@ -1,0 +1,339 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>[iOS]iOS开发常见问题 - Peter&#8217;s Blog</title>
+	<meta name="author" content="Peter">
+
+	
+	<meta name="description" content="博客、Peter">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Peter's Blog" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://codefunny.github.io/blog/2016/01/31/ios-properlems/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<!--link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'-->
+	<script src="http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js"></script>
+	<!-- baidu zhanzhang -->
+<meta name="baidu-site-verification" content="gZTC7LLPAu" />
+
+  
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<!-- img src="http://www.gravatar.com/avatar//images/custom_images/160-peter.jpg?s=160" alt="Profile Picture" style="width: 160px;" / -->
+	<img src="/images/custom_images/160-peter.jpg" alt="Profile Picture" style="width: 160px;" />
+	
+</div>
+<h1><a href="/">Peter</a></h1>
+<p class="subtitle">数风流人物<br>还看今朝</p>
+
+<nav id="main-nav"><ul class="main">
+    <li><a href="/">首页</a></li>
+    <li><a href="/blog/archives">所有文章</a></li>
+    <li><a href="/about">关于我</a></li>
+</ul>
+
+
+<section class="aboutme">
+  <p>
+    博客、Peter
+  </p>
+</section>
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+			<a class="email" href="mailto:winchaozheng@gmail.com" title="Email">Email</a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+<!-- add weixin  -->
+欢迎关注我的微信公众账号<br>
+<div align=center><img width="100" height="100" src="/images/qrcode_for_gh_weixin_430.jpg"></div>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">[iOS]iOS开发常见问题</h1>
+	<div class="entry-content" itemprop="articleBody"><p>最近工作比较忙，学习到了很多平时不注意的知识，这篇文章是2015年记录的开发中遇到的一些问题，还有很多没来得及记录。</p>
+
+<!--more-->
+
+
+<p>1、问题描述</p>
+
+<p>在往viewController中添加UIScrollView时，滑动时，控件总是向下偏移一段距离，开始不知何故，一查，原来是当向controller中第一个添加的控件时UIScrollView时，系统automaticallyAdjustsScrollViewInsets默认是YES，会自动向下偏移64像素，就是status bar和导航栏的高度，但是这种依靠系统的方式一般不被采用，所以最好将其设置位NO。</p>
+
+<p>也有说可以采用下面方法：self.edgesForExtendedLayout = UIExtendedEdgeNone;</p>
+
+<p>2、问题描述</p>
+
+<p>在设置status bar的颜色时，网上说在viewcontroller中覆写下面方法可以达到目的，但是在我的测试下，发现并没有执行下面的语句，我的viewcontroller是包含在UINavigationController中。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>-(UIStatusBarStyle)preferredStatusBarStyle
+</span><span class='line'>{
+</span><span class='line'>    return UIStatusBarStyleDefault;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>网上一博客给出的解释原因如下：</p>
+
+<p><strong>UINavigationController不会将 preferredStatusBarStyle方法调用转给它的子视图,而是由它自己管理状态,而且它也应该那样做.因为UINavigationController 包含了它自己的状态栏
+因此就算 UINavigationController中的viewController 实现了 preferredStatusBarStyle方法 也不会调用
+那 UINavigationController是怎么决定 该返回 UIStatusBarStyleLightContent 还是 UIStatusBarStyleDefault的呢? 它是基于它的 UINavigationBar.barStyle属性.默认(UIBarStyleDefault)的是黑色文本的状态栏 而 UIBarStyleBlack是设置为白色文本的状态栏</strong> 详见<a href="http://blog.csdn.net/jkwmscq/article/details/47107447">这篇文章</a></p>
+
+<p>所以在有UINavigationController的情况下，优先起作用的是navigationbar.barStyle的属性，默认情况是黑色，如果想要显示白色字体，可以如下设置：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>self.navigationController.navigationBar.barStyle = UIBarStyleBlackOpaque;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在没有UINavigationController或者隐藏uinavigationbar的情况下，是之前的方法起作用。</p>
+
+<p>另外，在application:didFinishLaunchingWithOptions:中设置如下也不起作用<code>[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];</code>，还需要在info中添加<code>View controller-based status bar appearance</code>为NO，才行。<strong>这个设置在iOS9中也被deprecate了，里面推荐的做法是viewcontroller的preferredStatusBarStyle方法</strong></p>
+
+<p>但是测试时，上面的语句对启动页的status bar的颜色还无法控制，所以比较好的解决办法是启动页面隐藏status bar，启动后再显示出来，作两个动作可以达到目的。
+在info中将<code>Status bar is initially hidden</code>设置为YES，然后在application:didFinishLaunchingWithOptions:中添加如下方法。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>[[UIApplication sharedApplication] setStatusBarHidden:NO];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>3、问题描述</p>
+
+<p>下面的操作在viewcontroller中不起作用，当放在application:didLaunchOption中会起作用.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>[[UINavigationBar appearance] setBarTintColor:[UIColor orangeColor]];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在viewcontroller中起作用的是这句，这个现象应该和appearance的工作机制有关.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>self.navigationController.navigationBar.barTintColor = [UIColor blackColor];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>4、遇到下面的警告提示，需要去配置中开启background task</p>
+
+<p>You&rsquo;ve implemented -[<UIApplicationDelegate> application:performFetchWithCompletionHandler:], but you still need to add &ldquo;fetch&rdquo; to the list of your supported UIBackgroundModes in your Info.plist.</p>
+
+<p>5、发现UINavigationBarDelegate这个协议，原来uinavigationbar也是一个堆栈的形式展现，于是也要把玩一下了，但是在使用现有SDK的navigationbar时，会报下面的错误，原来，必须是自定义的navigationbar才行。</p>
+
+<p>&lsquo;Cannot call pushNavigationItem:animated: directly on a UINavigationBar managed by a controller.&rsquo;</p>
+
+<p>同时，查看sdk中的UINavigationController中的navigationbar，后面有一段注释<code>The navigation bar managed by the controller. Pushing, popping or setting navigation items on a managed navigation bar is not supported.</code></p>
+
+<p>所以，如果要使用这个协议，最好的办法就是先隐藏系统的navigationbar，然后使用自定义的navigationbar，这样就可以在不pushViewController得情况下，更新导航栏的内容，这是一种不错的方式。</p>
+
+<p>6、问题描述</p>
+
+<p>在viewcontroller中测试uisearchController内容时，发现每次退出该页面都会遇到下面的concole提示，百思不得其解，有网友说是系统的一个bug，也给出了一个解决办法。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'> Attempting to load the view of a view controller while it is deallocating is not allowed and may result in undefined behavior (&lt;UISearchController: 0x105c1bc80&gt;)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>解决办法：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>- (void)dealloc {
+</span><span class='line'>    [self.searchController.view removeFromSuperview];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>7、问题描述</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>- (instancetype)initWithCoder:(NSCoder *)aDecoder
+</span><span class='line'>{
+</span><span class='line'>    [self setWithCoder:aDecoder];
+</span><span class='line'>    return self;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面代码在Xcode7.1中编译出现下面警告：<code>Convenience initializer missing a self call to another initializer</code>在stackoverflow上找到解释，说是ios8以后，苹果在SDK中增加了NS_DESIGNATED_INITIALIZER的宏来定义初始化方法，CLang要求所有init开头的方法必须要调用self或super的initializer方法，不然会有warning，所以上面的方法最好加上[super initWithCoder]等有NS_DESIGNATED_INITIALIZER定义的方法。</p>
+
+<p>但是还有一种情况比较棘手，就是定义NSObject的Category时覆写上面的方法，由于是NSObject类就导致其没有父类，此时可以这样:[self init]。</p>
+
+<p>8、iOS的UIModalPresentationCurrentContext特性</p>
+
+<p>模态半透明弹出框，在iOS8之前是采用上面的方式，但是到了ios8之后，就不行了，原因是SDK中作了修改，所以编码时也得跟进。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>if ([[UIDevice currentDevice].systemVersion floatValue] &gt;= 8.0) {  
+</span><span class='line'>     controller.providesPresentationContextTransitionStyle = YES;  
+</span><span class='line'>     controller.definesPresentationContext = YES;  
+</span><span class='line'>     controller.modalPresentationStyle = UIModalPresentationOverCurrentContext;  
+</span><span class='line'>     [self presentViewController:controller animated:YES completion:nil];  
+</span><span class='line'> } else {  
+</span><span class='line'>     self.view.window.rootViewController.modalPresentationStyle = UIModalPresentationCurrentContext;  
+</span><span class='line'>     [self presentViewController:controller animated:NO completion:nil];  
+</span><span class='line'>     self.view.window.rootViewController.modalPresentationStyle = UIModalPresentationFullScreen;  
+</span><span class='line'> }  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>顺道也复习一下下面的信息</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>typedef enum {
+</span><span class='line'>    UIModalPresentationFullScreen = 0, //全屏展示
+</span><span class='line'>    UIModalPresentationPageSheet,  //弹出是弹出VC时，presented VC的高度和当前屏幕高度相同，宽度和竖屏模式下屏幕宽度相同，剩余未覆盖区域将会变暗并阻止用户点击，这种弹出模式下，竖屏时跟UIModalPresentationFullScreen的效果一样，横屏时候两边则会留下变暗的区域
+</span><span class='line'>    UIModalPresentationFormSheet,  //presented VC的高度和宽度均会小于屏幕尺寸，presented VC居中显示，四周留下变暗区域
+</span><span class='line'>    UIModalPresentationCurrentContext,  //半透明方式
+</span><span class='line'>} UIModalPresentationStyle;</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+</article>
+	
+
+<DIV style="font-size:12px;BORDER-BOTTOM: #bbbbbb 1px solid; BORDER-LEFT: #bbbbbb 1px solid; BACKGROUND: #f6f6f6; BORDER-TOP: #bbbbbb 1px solid; BORDER-RIGHT: #bbbbbb 1px solid" class=peterright> 
+<DIV style="MARGIN-TOP: 10px; FLOAT: left; MARGIN-LEFT: 5px; MARGIN-RIGHT: 10px"> 
+	<script type="text/javascript">
+		document.write("<img src='/images/custom_images/100-peter.jpg' alt='Profile Picture' style='width:90px;max_width: 100px; height:90px;max_height:100px;' />");
+</script>
+</DIV> 
+<DIV style="LINE-HEIGHT: 200%; MARGIN-TOP: 10px; COLOR: #000000"> 
+作者： <A href="http://Peter.github.io/">Peter</A> <br> 
+出处： <A href="http://codefunny.github.io/">http://codefunny.github.io/</A> 
+<br>本文基于<br>
+<a target="_blank" title="Creative Commons Attribution 2.5 China Mainland License" href="http://creativecommons.org/licenses/by/2.5/cn/"> 
+署名 2.5 中国大陆</a>许可协议发布，欢迎转载，演绎或用于商业目的，但是必须保留本文的署名 <a href="http://codefunny.github.io">Peter</a>（包含链接）。
+ </DIV>
+</DIV> 
+
+
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1372347702608570" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+<br>
+<br>
+<br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>
+<!-- UY END -->
+
+	
+	
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <!--script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=" -->
+</div>
+
+
+
+</div>
+			</div>
+			<footer id="footer" class="inner"><p>
+Copyright &copy; 2016
+
+    Peter
+
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+		</div>
+	</div>
+	
+
+
+
+
+
+
+
+
+<!-- baidu tongji  -->
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F34d22b7d6d470c1d99721ec921e0c96d' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+</body>
+</html>
