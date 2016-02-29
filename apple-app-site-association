@@ -1,10 +1,15 @@
 {
-  "applinks": {
-    "apps": [],
-    "details": {
-      "Q4UHML6F7Q.com.peter.WXOrientationsDemo": {
-        "paths":[ "*" ]
-      }
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
+                "paths": [ "/chuliuxiang/*"]
+            },
+            {
+                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
+                "paths": [ "*" ]
+            }
+        ]
     }
-  }
 }
