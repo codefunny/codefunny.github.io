@@ -3,23 +3,11 @@
         "apps": [],
         "details": [
             {
-                "appID": "2DF7TAE5CB.test.yyvoice",
-                "paths": [ "*" ]
+                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
+                "paths": [ "/chuliuxiang/*"]
             },
             {
-                "appID": "2DF7TAE5CB.com.yy.yymobile.developer",
-                "paths": [ "/mobilelive/*","/channel/*" ]
-            },
-            {
-                "appID": "RA5DTC26D2.com.yy.enterprise.yyvoice",
-                "paths": [ "*" ]
-            },
-            {
-                "appID": "CC24P4P8X9.com.ent.yyvoice",
-                "paths": [ "*" ]
-            },
-            {
-                "appID": "6PWGNRMMSV.yyvoice",
+                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
                 "paths": [ "*" ]
             }
         ]
