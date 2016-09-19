@@ -4,7 +4,7 @@
         "details": [
             {
                 "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
-                "paths": [ "/chuliuxiang/"]
+                "paths": [ "/chuliuxiang/*"]
             },
             {
                 "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
