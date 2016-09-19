@@ -8,7 +8,7 @@
             },
             {
                 "appID": "2DF7TAE5CB.com.yy.yymobile.developer",
-                "paths": [ "/*" ]
+                "paths": [ "/*","/mobilelive/*" ]
             },
             {
                 "appID": "RA5DTC26D2.com.yy.enterprise.yyvoice",
