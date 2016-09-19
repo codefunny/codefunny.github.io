@@ -3,14 +3,6 @@
         "apps": [],
         "details": [
             {
-                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
-                "paths": [ "/chuliuxiang/*"]
-            },
-            {
-                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
-                "paths": [ "*" ]
-            }
-            {
                 "appID": "2DF7TAE5CB.test.yyvoice",
                 "paths": [ "*" ]
             },
