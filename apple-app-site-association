@@ -21,7 +21,7 @@
             {
                 "appID": "6PWGNRMMSV.yyvoice",
                 "paths": [ "*" ]
-            }
+            },
             {
                 "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
                 "paths": [ "/chuliuxiang/*"]
