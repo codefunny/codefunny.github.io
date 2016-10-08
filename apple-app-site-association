@@ -4,7 +4,7 @@
         "details": [
             {
                 "appID": "2DF7TAE5CB.com.yy.yymobile.developer",
-                "paths": [ "/mobilelive/*", "/channel/*","/web","/shenqu","duanpai" ]
+                "paths": [ "ulink.yy.com/mobilelive/*", "ulink.yy.com/channel/*","ulink.yy.com/web","ulink.yy.com/shenqu","ulink.yy.com/duanpai" ]
             }
         ]
     }
