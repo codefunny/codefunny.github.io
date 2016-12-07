@@ -3,7 +3,11 @@
         "apps": [],
         "details": [
             {
-                "appID": "2DF7TAE5CB.com.yy.yymobile.developer",
+                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
+                "paths": [ "/chuliuxiang/*"]
+            },
+            {
+                "appID": "Q4UHML6F7Q.com.peter.WXOrientationsDemo",
                 "paths": [ "*" ]
             }
         ]
